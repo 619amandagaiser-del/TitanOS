@@ -2,208 +2,122 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShadowOS Zenith</title>
-    <script src="https://js.puter.com/v2/" defer></script>
+    <title>Zenith OS</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #020617; --accent: #3b82f6; --win-bg: #0f172a; --text: #f8fafc;
-            --glass: rgba(15, 23, 42, 0.8);
-        }
-        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
-        body { height: 100vh; overflow: hidden; font-family: 'Inter', sans-serif; color: var(--text); background: var(--bg); }
-        #wallpaper { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2064') center/cover; z-index: -1; filter: brightness(0.3); }
-
-        /* Desktop */
-        #desktop { height: calc(100vh - 48px); display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; padding: 25px; gap: 25px; }
-        .icon { width: 90px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .icon:hover { transform: scale(1.1); filter: drop-shadow(0 0 10px var(--accent)); }
-        .icon i { font-size: 44px; margin-bottom: 8px; color: var(--accent); }
-        .icon span { font-size: 11px; font-weight: 700; text-align: center; letter-spacing: 0.5px; text-transform: uppercase; }
-
-        /* Windows */
-        .window { position: absolute; background: var(--win-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 30px 60px rgba(0,0,0,0.7); display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(20px); }
-        .win-bar { height: 45px; background: rgba(30, 41, 59, 0.5); display: flex; align-items: center; padding: 0 18px; cursor: move; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .win-title { font-size: 11px; font-weight: 900; flex-grow: 1; letter-spacing: 2px; opacity: 0.8; }
-        .win-controls { display: flex; gap: 10px; }
-        .win-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; transition: 0.2s; }
-        .win-btn:hover { transform: scale(1.2); }
-
-        /* App Layouts */
-        .content { flex-grow: 1; position: relative; background: #000; display: flex; flex-direction: column; }
-        iframe { width: 100%; height: 100%; border: none; background: white; }
+        :root { --bg: #000; --accent: #4285F4; --term: #00FF41; --red: #E50914; --win: #0f0f0f; }
+        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; height: 100vh; transition: 0.5s; }
         
-        /* Browser & Editor UI */
-        .toolbar { padding: 12px; background: #1e293b; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #334155; }
-        .address-bar { flex-grow: 1; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 16px; border-radius: 30px; outline: none; font-family: 'JetBrains Mono'; font-size: 12px; }
-        .editor-split { display: flex; height: 100%; }
-        .code-input { width: 50%; background: #050505; color: #22c55e; border: none; padding: 20px; font-family: 'JetBrains Mono'; resize: none; outline: none; border-right: 1px solid #333; font-size: 13px; line-height: 1.6; }
-        .preview-pane { width: 50%; background: #fff; }
+        /* 1. Dynamic Wallpaper Themes */
+        body.theme-neon { background: radial-gradient(circle, #001233 0%, #000 100%); }
+        body.theme-sea { background: radial-gradient(circle, #001a1a 0%, #000 100%); }
 
-        /* Taskbar */
-        #taskbar { position: absolute; bottom: 0; width: 100%; height: 48px; background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 25px; z-index: 10000; }
-        .tray { display: flex; align-items: center; gap: 20px; margin-left: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #94a3b8; }
+        /* 2. App Dock (Hover-based to save space) */
+        #dock { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(20,20,20,0.8); backdrop-filter: blur(15px); padding: 10px 20px; border-radius: 20px; border: 1px solid #333; display: flex; gap: 20px; opacity: 0; transition: 0.3s; z-index: 1000; }
+        #dock:hover { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .dock-icon { cursor: pointer; transition: 0.2s; font-size: 28px; color: #777; }
+        .dock-icon:hover { color: var(--accent); transform: scale(1.2); }
+
+        /* Windows & Snap */
+        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #222; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.7); z-index: 10; }
+        .win-bar { height: 40px; background: #000; display: flex; align-items: center; padding: 0 15px; cursor: move; }
+        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #555; }
         
-        .pulse { animation: shadow-pulse 2s infinite; }
-        @keyframes shadow-pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        /* Browser & Tabbed Feature */
+        .tab-bar { display: flex; background: #050505; gap: 2px; }
+        .tab { padding: 8px 15px; font-size: 10px; cursor: pointer; background: #111; color: #555; }
+        .tab.active { background: var(--win); color: var(--accent); font-weight: 900; }
+
+        /* Taskbar & Quick Search */
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 50px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; padding: 0 20px; z-index: 2000; }
+        #q-search { background: #111; border: 1px solid #222; border-radius: 5px; color: white; padding: 5px 10px; font-size: 12px; width: 200px; margin-left: 20px; outline: none; }
+        #clock { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #444; }
+
+        #panic { position: fixed; inset: 0; background: white; z-index: 99999; display: none; }
     </style>
 </head>
 <body onload="OS.init()">
 
-    <div id="wallpaper"></div>
-    <div id="desktop"></div>
+    <div id="panic"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
+
+    <div id="dock">
+        <i class="material-icons-round dock-icon" onclick="OS.open('web-win')">language</i>
+        <i class="material-icons-round dock-icon" onclick="OS.open('cinema-win')">play_circle</i>
+        <i class="material-icons-round dock-icon" onclick="OS.open('admin-win')">terminal</i>
+    </div>
+
+    <div id="web-win" class="window" style="width: 1000px; height: 650px; top: 50px; left: 100px;">
+        <div class="win-bar" onmousedown="OS.drag(event, 'web-win')" ondblclick="OS.snap('web-win')">
+            <div class="win-title">WEB_NODE_V3</div>
+            <i class="material-icons-round" style="cursor:pointer; font-size:18px;" onclick="OS.close('web-win')">close</i>
+        </div>
+        <div class="tab-bar">
+            <div id="tab1" class="tab active" onclick="OS.switchTab(1)">NODE_A</div>
+            <div id="tab2" class="tab" onclick="OS.switchTab(2)">NODE_B</div>
+        </div>
+        <iframe id="web-frame" src="https://www.google.com/search?igu=1" style="flex-grow:1; border:none; background:#fff;"></iframe>
+    </div>
+
+    <div id="admin-win" class="window" style="width: 450px; height: 450px; top: 100px; left: 300px;">
+        <div class="win-bar" onmousedown="OS.drag(event, 'admin-win')">
+            <div class="win-title">ADMIN_DASHBOARD</div>
+        </div>
+        <div style="padding: 20px;">
+            <label style="font-size:10px; color: #444;">THEME ENGINE</label>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button onclick="document.body.className=''" style="background:#111; color:white; border:1px solid #333; cursor:pointer;">STEALTH</button>
+                <button onclick="document.body.className='theme-neon'" style="background:#001233; color:white; border:1px solid #333; cursor:pointer;">NEON</button>
+                <button onclick="document.body.className='theme-sea'" style="background:#001a1a; color:white; border:1px solid #333; cursor:pointer;">SEA</button>
+            </div>
+            </div>
+    </div>
 
     <div id="taskbar">
-        <div style="font-weight: 900; letter-spacing: 3px; font-size: 14px;">SHADOW<span style="color:var(--accent)">ZENITH</span></div>
-        <div class="tray">
-            <div id="bat-tray" style="display:flex; align-items:center; gap:8px;">
-                <i class="material-icons-round" id="bat-icon">battery_full</i>
-                <span id="bat-level">--%</span>
-            </div>
-            <div id="clock">00:00</div>
-        </div>
+        <span style="font-size:10px; font-weight:900; letter-spacing:2px; color:#333;">ZENITH_OS</span>
+        <input type="text" id="q-search" placeholder="Quick Search / URL" onkeypress="if(event.key==='Enter') OS.quickNav()">
+        <div id="clock">00:00:00</div>
     </div>
 
     <script>
         const OS = {
-            zIndex: 100,
             init() {
-                this.renderDesktop();
-                this.syncSystem();
-                document.addEventListener('keydown', e => { 
-                    if(e.key === "Escape") location.href='https://google.com'; 
-                });
-            },
-
-            syncSystem() {
                 setInterval(() => {
-                    document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    const d = new Date();
+                    document.getElementById('clock').innerText = d.toLocaleTimeString();
                 }, 1000);
-                if(navigator.getBattery) navigator.getBattery().then(b => {
-                    const u = () => {
-                        document.getElementById('bat-level').innerText = Math.round(b.level * 100) + '%';
-                        document.getElementById('bat-icon').innerText = b.charging ? 'battery_charging_full' : 'battery_full';
-                    };
-                    u(); b.onlevelchange = u; b.onchargingchange = u;
-                });
+                document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
             },
-
-            cloak() {
-                const w = window.open('about:blank', '_blank');
-                const d = w.document;
-                d.title = "about:blank";
-                const i = d.createElement('iframe');
-                i.style = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;";
-                i.src = window.location.href;
-                d.body.appendChild(i);
-                window.location.replace('https://google.com');
+            open(id) { document.getElementById(id).style.display = 'flex'; },
+            close(id) { document.getElementById(id).style.display = 'none'; },
+            // Feature: Tab Switching
+            switchTab(n) {
+                const f = document.getElementById('web-frame');
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.getElementById('tab' + n).classList.add('active');
+                f.src = n === 1 ? "https://www.google.com/search?igu=1" : "https://www.bing.com";
             },
-
-            renderDesktop() {
-                const apps = [
-                    { id: 'cloak', name: 'Cloak OS', icon: 'security', color: '#ef4444' },
-                    { id: 'browser', name: 'Web Node', icon: 'language', color: '#3b82f6' },
-                    { id: 'editor', name: 'Dev Studio', icon: 'code', color: '#10b981' },
-                    { id: 'chat', name: 'CommNet', icon: 'settings_input_antenna', color: '#a855f7' }
-                ];
-                const d = document.getElementById('desktop');
-                apps.forEach(a => {
-                    const div = document.createElement('div');
-                    div.className = 'icon';
-                    div.innerHTML = `<i class="material-icons-round" style="color:${a.color}">${a.icon}</i><span>${a.name}</span>`;
-                    div.onclick = () => a.id === 'cloak' ? this.cloak() : this.openWindow(a);
-                    d.appendChild(div);
-                });
-            },
-
-            openWindow(app) {
-                const id = 'win_' + Date.now();
-                const win = document.createElement('div');
-                win.className = 'window'; win.id = id;
-                win.style.width = '1000px'; win.style.height = '650px';
-                win.style.left = '100px'; win.style.top = '60px';
-                win.style.zIndex = ++this.zIndex;
-
-                let inner = '';
-                if(app.id === 'browser') {
-                    inner = `
-                        <div class="toolbar">
-                            <input type="text" id="url_${id}" class="address-bar" placeholder="Enter Secure URL..." onkeypress="if(event.key==='Enter') OS.navigate('${id}')">
-                            <button onclick="OS.grabToEditor('${id}')" style="background:var(--accent); border:none; color:white; padding:8px 15px; border-radius:20px; font-size:10px; font-weight:bold; cursor:pointer;">INSPECT CODE</button>
-                        </div>
-                        <iframe id="frame_${id}" src="about:blank"></iframe>`;
-                } else if(app.id === 'editor') {
-                    inner = `
-                        <div class="editor-split">
-                            <textarea id="code_${id}" class="code-input" placeholder="Paste HTML/CSS/JS here..." oninput="OS.updatePreview('${id}')">${localStorage.getItem('sh_code')||''}</textarea>
-                            <iframe id="prev_${id}" class="preview-pane"></iframe>
-                        </div>`;
-                } else if(app.id === 'chat') {
-                    inner = `<iframe src="https://meet.jit.si/ShadowZenith_${Math.random().toString(36).substring(7)}" allow="camera; microphone; fullscreen; autoplay"></iframe>`;
+            // Feature: Window Snapping
+            snap(id) {
+                const w = document.getElementById(id);
+                if(w.style.width === '100vw') {
+                    w.style.width = '1000px'; w.style.height = '650px'; w.style.top = '50px'; w.style.left = '100px';
+                } else {
+                    w.style.width = '100vw'; w.style.height = 'calc(100vh - 50px)'; w.style.top = '0'; w.style.left = '0';
                 }
-
-                win.innerHTML = `
-                    <div class="win-bar" onmousedown="OS.dragStart(event, '${id}')">
-                        <div class="win-title">${app.name.toUpperCase()}</div>
-                        <div class="win-controls">
-                            <button class="win-btn" style="background:#22c55e" onclick="OS.maximize('${id}')"></button>
-                            <button class="win-btn" style="background:#ef4444" onclick="document.getElementById('${id}').remove()"></button>
-                        </div>
-                    </div>
-                    <div class="content">${inner}</div>`;
-                document.body.appendChild(win);
-                if(app.id === 'editor') this.updatePreview(id);
             },
-
-            async navigate(winId) {
-                const input = document.getElementById(`url_${winId}`);
-                const frame = document.getElementById(`frame_${winId}`);
-                let url = input.value;
-                if(!url.includes('.') || url.includes(' ')) url = `https://www.google.com/search?q=${encodeURIComponent(url)}&igu=1`;
-                else if(!url.startsWith('http')) url = 'https://' + url;
-
-                input.value = "ZENITH_BUFFER_0x" + btoa(url).substring(0, 12);
-                
-                try {
-                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                    const data = await res.json();
-                    const doc = frame.contentWindow.document;
-                    doc.open();
-                    doc.write(`<base href="${url}">${data.contents}`);
-                    doc.close();
-                } catch (e) { frame.src = url; }
+            // Feature: Quick Taskbar Navigation
+            quickNav() {
+                const val = document.getElementById('q-search').value;
+                this.open('web-win');
+                document.getElementById('web-frame').src = val.includes('.') ? 'https://' + val : 'https://www.google.com/search?q=' + val + '&igu=1';
             },
-
-            grabToEditor(winId) {
-                const frame = document.getElementById(`frame_${winId}`);
-                const code = frame.contentWindow.document.documentElement.outerHTML;
-                localStorage.setItem('sh_code', code);
-                this.openWindow({id:'editor', name:'Dev Studio', color:'#10b981', icon:'code'});
-            },
-
-            updatePreview(id) {
-                const code = document.getElementById(`code_${id}`).value;
-                const prev = document.getElementById(`prev_${id}`).contentWindow.document;
-                localStorage.setItem('sh_code', code);
-                prev.open();
-                prev.write(code);
-                prev.close();
-            },
-
-            dragStart(e, id) {
+            drag(e, id) {
                 const w = document.getElementById(id);
                 let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
-                const m = (ev) => { w.style.left = ev.clientX - ox + 'px'; w.style.top = ev.clientY - oy + 'px'; };
+                const m = ev => { w.style.left = ev.clientX - ox + 'px'; w.style.top = ev.clientY - oy + 'px'; };
                 document.addEventListener('mousemove', m);
                 document.onmouseup = () => document.removeEventListener('mousemove', m);
-            },
-
-            maximize(id) {
-                const w = document.getElementById(id);
-                if(w.style.width === '100%') { w.style.width='1000px'; w.style.height='650px'; }
-                else { w.style.width='100%'; w.style.height='calc(100vh - 48px)'; w.style.top='0'; w.style.left='0'; }
             }
         };
     </script>
