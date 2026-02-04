@@ -2,126 +2,353 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ShadowV3 | Workspace</title>
-    <script src="https://js.puter.com/v2/"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShadowV4 | Monolith</title>
+    <meta name="theme-color" content="#000000">
+    <script src="https://js.puter.com/v2/" defer></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --bg: #05070a; --accent: #3b82f6; --ui-border: #1e293b; --tab-bg: #111827; }
-        body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; }
-
-        /* Custom UI Frame */
-        .tab-container { background: #0a0f1a; display: flex; align-items: center; padding: 10px 15px; gap: 5px; border-bottom: 1px solid var(--ui-border); height: 45px; }
-        .tab { background: var(--tab-bg); padding: 8px 18px; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px; font-size: 13px; border: 1px solid var(--ui-border); border-bottom: none; cursor: pointer; min-width: 120px; }
-        .tab.active { background: #1e293b; border-color: var(--accent); }
-        
-        .nav-bar { background: #0a0f1a; display: flex; align-items: center; padding: 10px 20px; gap: 20px; border-bottom: 1px solid var(--ui-border); }
-        .address-bar-wrapper { background: #05070a; border: 1px solid var(--ui-border); border-radius: 25px; flex-grow: 1; padding: 8px 25px; display: flex; align-items: center; }
-        .address-bar-wrapper input { background: transparent; border: none; color: #94a3b8; width: 100%; outline: none; font-size: 14px; }
-
-        /* Centered Branding and UI */
-        .main-frame { 
-            flex-grow: 1; 
-            position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center;
-            background: radial-gradient(circle at center, #1e3a8a 0%, #05070a 85%);
-            height: calc(100vh - 110px);
+        /* --- KERNEL STYLES --- */
+        :root {
+            --bg: #050505; --panel: rgba(20, 20, 25, 0.7); 
+            --accent: #3b82f6; --text: #e2e8f0; --border: rgba(255, 255, 255, 0.08);
+            --win-bg: #0f172a; --win-header: #1e293b;
         }
 
-        .shadow-title { font-size: 140px; font-weight: 900; margin: 0; letter-spacing: -8px; color: #60a5fa; text-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
-        .shadow-tagline { color: #64748b; font-size: 14px; letter-spacing: 3px; margin-top: -10px; text-transform: uppercase; }
-
-        /* Proxy Container */
-        #proxy-container { position: fixed; top: 110px; left: 0; width: 100%; height: calc(100vh - 110px); background: white; display: none; z-index: 10; border: none; }
+        * { box-sizing: border-box; user-select: none; -webkit-user-drag: none; cursor: default; }
         
-        .footer-tag { position: absolute; bottom: 30px; left: 30px; background: rgba(15, 23, 42, 0.8); padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 13px; border: 1px solid var(--ui-border); }
-        .status-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
+        body {
+            margin: 0; overflow: hidden; height: 100vh;
+            background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop') no-repeat center center/cover;
+            font-family: 'Inter', sans-serif; color: var(--text);
+        }
+
+        /* Scanline Effect overlay */
+        body::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 9999;
+        }
+
+        /* --- DESKTOP ENVIRONMENT --- */
+        #desktop {
+            height: calc(100vh - 48px); width: 100%; position: relative;
+            display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start;
+            padding: 10px; gap: 10px;
+        }
+
+        .desktop-icon {
+            width: 80px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 8px; transition: 0.2s; color: white; text-shadow: 0 1px 4px black;
+        }
+        .desktop-icon:hover { background: rgba(255, 255, 255, 0.1); }
+        .desktop-icon .material-icons-round { font-size: 42px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .desktop-icon span { font-size: 11px; font-weight: 500; text-align: center; }
+
+        /* --- WINDOW MANAGER --- */
+        .window {
+            position: absolute; background: var(--win-bg); border: 1px solid var(--border);
+            border-radius: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; overflow: hidden;
+            min-width: 300px; min-height: 200px;
+            animation: openWin 0.2s cubic-bezier(0,1,0.5,1);
+        }
+
+        @keyframes openWin { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .title-bar {
+            height: 36px; background: var(--win-header); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 10px; cursor: default; border-bottom: 1px solid var(--border);
+        }
+        .title-drag-area { flex-grow: 1; height: 100%; display: flex; align-items: center; font-size: 12px; font-weight: 600; padding-left: 10px; }
+        
+        .win-controls { display: flex; gap: 8px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
+        .close-btn { background: #ef4444; } .min-btn { background: #fbbf24; } .max-btn { background: #22c55e; }
+
+        .win-content { flex-grow: 1; position: relative; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* --- TASKBAR --- */
+        #taskbar {
+            position: absolute; bottom: 0; width: 100%; height: 48px;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(15px);
+            border-top: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 15px; justify-content: space-between;
+            z-index: 10000;
+        }
+
+        .start-btn {
+            background: var(--accent); color: white; border: none; padding: 6px 16px;
+            border-radius: 6px; font-weight: bold; display: flex; align-items: center; gap: 8px;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+        .start-btn:hover { filter: brightness(1.2); }
+
+        .task-list { display: flex; gap: 5px; flex-grow: 1; padding: 0 20px; }
+        .task-item {
+            width: 40px; height: 36px; background: rgba(255,255,255,0.05); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            border-bottom: 2px solid transparent; transition: 0.2s;
+        }
+        .task-item.active { border-bottom-color: var(--accent); background: rgba(255,255,255,0.1); }
+
+        .tray { font-family: 'JetBrains Mono'; font-size: 12px; color: #cbd5e1; }
+
+        /* --- START MENU --- */
+        #start-menu {
+            position: absolute; bottom: 55px; left: 10px; width: 350px; height: 500px;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 12px;
+            display: none; flex-direction: column; padding: 20px; z-index: 10001;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+        
+        .menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
+        .menu-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); }
+        .menu-item i { font-size: 24px; color: var(--accent); }
+        .menu-item span { font-size: 10px; }
+
+        /* --- UTILS --- */
+        .resize-handle { position: absolute; bottom: 0; right: 0; width: 15px; height: 15px; cursor: nwse-resize; }
     </style>
 </head>
-<body>
+<body onload="OS.boot()">
 
-    <div class="tab-container">
-        <div class="tab active" onclick="showHome()">🏠 Home</div>
-        <div style="color: #94a3b8; font-size: 22px; cursor: pointer; padding: 0 10px;">+</div>
-    </div>
-
-    <div class="nav-bar">
-        <div style="display:flex; gap:15px; color:#94a3b8;"><span>←</span> <span>→</span> <span onclick="location.reload()" style="cursor:pointer">↻</span></div>
-        <div class="address-bar-wrapper">
-            <input type="text" id="urlInput" placeholder="Enter URL (e.g. calcsolver.net)" onkeypress="if(event.key==='Enter') launchProxy()">
+    <div id="desktop">
         </div>
-        <div style="color:#94a3b8; cursor:pointer;" onclick="cloak()">❐ Cloak Mode</div>
-    </div>
 
-    <div class="main-frame" id="mainUI">
-        <h1 class="shadow-title">Shadow</h1>
-        <div class="shadow-tagline">discord.gg/goshadow</div>
-
-        <div class="footer-tag">
-            <div class="status-dot"></div>
-            ShadowV3 System | Panic: <b>Esc</b>
+    <div id="start-menu">
+        <div style="font-size: 18px; font-weight: 900; color: white;">Shadow<span style="color:var(--accent)">OS</span></div>
+        <input type="text" placeholder="Search files..." style="width:100%; margin-top:15px; padding:8px; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; border-radius:6px;">
+        <div class="menu-grid" id="menu-apps"></div>
+        <div style="margin-top:auto; padding-top:10px; border-top:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:12px;">User: Admin</div>
+            <button onclick="OS.panic()" style="background:#ef4444; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;">Panic</button>
         </div>
     </div>
 
-    <div id="proxy-container"></div>
+    <div id="taskbar">
+        <button class="start-btn" onclick="OS.toggleStart()">
+            <i class="material-icons-round">grid_view</i> Start
+        </button>
+        <div class="task-list" id="task-list"></div>
+        <div class="tray" id="clock">00:00</div>
+    </div>
 
     <script>
-        // Panic Key to ClassLink
-        document.addEventListener('keydown', e => {
-            if(e.key === "Escape") window.location.replace("http://myapps.classlink.com/");
-        });
+        // --- SHADOW MONOLITH KERNEL ---
 
-        function showHome() {
-            document.getElementById('proxy-container').style.display = 'none';
-            document.getElementById('mainUI').style.display = 'flex';
-        }
+        const APP_DB = [
+            { id: 'browser', name: 'Browser', icon: 'public', type: 'app', url: 'https://google.com/webhp?igu=1' },
+            { id: 'calc', name: 'Solver', icon: 'calculate', type: 'app', url: 'https://calcsolver.net' },
+            { id: 'chat', name: 'AI Chat', icon: 'smart_toy', type: 'app', url: 'https://chatgpt.com' },
+            { id: 'term', name: 'Terminal', icon: 'terminal', type: 'tool', action: 'terminal' },
+            { id: 'files', name: 'Files', icon: 'folder', type: 'tool', action: 'files' },
+            { id: 'editor', name: 'Code', icon: 'code', type: 'tool', action: 'editor' },
+            { id: 'settings', name: 'Settings', icon: 'settings', type: 'tool', action: 'settings' },
+            // Games
+            { id: 'mc', name: 'Minecraft', icon: 'dns', type: 'game', url: 'https://classic.minecraft.net' },
+            { id: 'slope', name: 'Slope', icon: 'landscape', type: 'game', url: 'https://ubg100.github.io/games/slope.html' },
+            { id: '1v1', name: '1v1.LOL', icon: 'security', type: 'game', url: 'https://1v1.lol' },
+            { id: 'poki', name: 'Poki', icon: 'extension', type: 'game', url: 'https://poki.com' },
+            { id: 'yt', name: 'YouTube', icon: 'play_arrow', type: 'media', url: 'https://youtube.com' }
+        ];
 
-        // About:Blank Stealth Mode
-        function cloak() {
-            const win = window.open();
-            if (!win) return alert("Allow popups!");
-            win.document.body.style.margin = "0";
-            win.document.body.innerHTML = `<iframe src="${window.location.href}" style="border:none;width:100%;height:100vh;margin:0;padding:0;overflow:hidden;"></iframe>`;
-            window.location.replace("http://myapps.classlink.com/"); // Switch original tab
-        }
+        class OperatingSystem {
+            constructor() {
+                this.windows = [];
+                this.zIndex = 100;
+                this.activeWindow = null;
+            }
 
-        // Proxy Engine
-        async function launchProxy() {
-            const target = document.getElementById('urlInput').value;
-            if (!target) return;
-
-            const proxyFrame = document.getElementById('proxy-container');
-            proxyFrame.style.display = 'block';
-            document.getElementById('mainUI').style.display = 'none';
-            proxyFrame.innerHTML = "<div style='color:black; padding:20px; font-family:sans-serif;'>Connecting to Tunnel...</div>";
-
-            try {
-                const finalUrl = target.startsWith('http') ? target : 'https://' + target;
-                const resp = await puter.net.fetch(finalUrl);
-                let html = await resp.text();
-
-                // Remove ad scripts and inject base
-                const base = `<base href="${finalUrl}">`;
-                html = html.replace(/<script.*adsystem.*<\/script>/gi, ''); 
-                html = html.includes('<head>') ? html.replace('<head>', `<head>${base}`) : base + html;
+            boot() {
+                this.renderDesktop();
+                this.renderStartMenu();
+                this.updateClock();
+                setInterval(() => this.updateClock(), 1000);
                 
-                proxyFrame.innerHTML = html;
-
-                // Re-execute scripts
-                const scripts = proxyFrame.querySelectorAll("script");
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement("script");
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                // Panic Key
+                document.addEventListener('keydown', e => {
+                    if(e.key === "Escape") this.panic();
                 });
+            }
 
-            } catch (e) {
-                alert("ShadowV3: Access Refused.");
-                showHome();
+            updateClock() {
+                const d = new Date();
+                document.getElementById('clock').innerText = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+
+            renderDesktop() {
+                const desk = document.getElementById('desktop');
+                APP_DB.forEach(app => {
+                    const el = document.createElement('div');
+                    el.className = 'desktop-icon';
+                    el.innerHTML = `<i class="material-icons-round" style="color:${this.getIconColor(app.type)}">${app.icon}</i><span>${app.name}</span>`;
+                    el.onclick = () => this.openApp(app);
+                    desk.appendChild(el);
+                });
+            }
+
+            renderStartMenu() {
+                const grid = document.getElementById('menu-apps');
+                APP_DB.forEach(app => {
+                    const el = document.createElement('div');
+                    el.className = 'menu-item';
+                    el.innerHTML = `<i class="material-icons-round">${app.icon}</i><span>${app.name}</span>`;
+                    el.onclick = () => { this.openApp(app); this.toggleStart(); };
+                    grid.appendChild(el);
+                });
+            }
+
+            getIconColor(type) {
+                if(type === 'game') return '#f59e0b'; // Orange
+                if(type === 'tool') return '#64748b'; // Slate
+                if(type === 'media') return '#ef4444'; // Red
+                return '#3b82f6'; // Blue
+            }
+
+            toggleStart() {
+                const menu = document.getElementById('start-menu');
+                menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+            }
+
+            openApp(app) {
+                const id = 'win-' + Date.now();
+                const win = document.createElement('div');
+                win.className = 'window';
+                win.id = id;
+                win.style.left = (50 + (this.windows.length * 20)) + 'px';
+                win.style.top = (50 + (this.windows.length * 20)) + 'px';
+                win.style.width = '800px';
+                win.style.height = '500px';
+                win.style.zIndex = ++this.zIndex;
+
+                let content = '';
+                if(app.url) {
+                    content = `<iframe src="${app.url}"></iframe>`;
+                    // Turbo Proxy Logic check
+                    if(!app.url.includes('google') && !app.url.includes('github')) {
+                        this.proxyLoad(app.url, id); // Async load
+                    }
+                } else if (app.action === 'terminal') {
+                    content = `<div style="background:black; color:#33ff33; padding:10px; font-family:'JetBrains Mono'; height:100%;">root@shadow:~$ <span class="blink">_</span></div>`;
+                } else {
+                    content = `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:white;">App Module Loaded: ${app.name}</div>`;
+                }
+
+                win.innerHTML = `
+                    <div class="title-bar" onmousedown="OS.dragStart(event, '${id}')">
+                        <div class="win-controls">
+                            <button class="win-btn close-btn" onclick="OS.closeWindow('${id}')"></button>
+                            <button class="win-btn min-btn"></button>
+                            <button class="win-btn max-btn" onclick="OS.maximize('${id}')"></button>
+                        </div>
+                        <div class="title-drag-area">${app.name}</div>
+                    </div>
+                    <div class="win-content" id="content-${id}">${content}</div>
+                    <div class="resize-handle" onmousedown="OS.resizeStart(event, '${id}')"></div>
+                `;
+
+                win.onmousedown = () => { win.style.zIndex = ++this.zIndex; };
+                document.body.appendChild(win);
+                this.windows.push(win);
+                this.addToTaskbar(id, app);
+            }
+
+            async proxyLoad(url, winId) {
+                // Advanced Blob Proxy Injection
+                try {
+                    const resp = await puter.net.fetch(url);
+                    const blob = await resp.blob();
+                    const bUrl = URL.createObjectURL(blob);
+                    const container = document.getElementById('content-' + winId);
+                    container.innerHTML = `<iframe src="${bUrl}"></iframe>`;
+                } catch(e) { console.log('Direct load fallback'); }
+            }
+
+            closeWindow(id) {
+                const win = document.getElementById(id);
+                if(win) win.remove();
+                this.windows = this.windows.filter(w => w.id !== id);
+                document.getElementById('task-' + id).remove();
+            }
+
+            maximize(id) {
+                const win = document.getElementById(id);
+                if(win.style.width === '100%') {
+                    win.style.width = '800px'; win.style.height = '500px'; win.style.top = '50px'; win.style.left = '50px';
+                } else {
+                    win.style.width = '100%'; win.style.height = 'calc(100vh - 48px)'; win.style.top = '0'; win.style.left = '0';
+                }
+            }
+
+            addToTaskbar(id, app) {
+                const bar = document.getElementById('task-list');
+                const item = document.createElement('div');
+                item.className = 'task-item active';
+                item.id = 'task-' + id;
+                item.innerHTML = `<i class="material-icons-round" style="font-size:18px; color:white;">${app.icon}</i>`;
+                item.onclick = () => {
+                    const win = document.getElementById(id);
+                    win.style.zIndex = ++this.zIndex;
+                };
+                bar.appendChild(item);
+            }
+
+            // Window Drag Logic
+            dragStart(e, id) {
+                e.preventDefault();
+                const win = document.getElementById(id);
+                let shiftX = e.clientX - win.getBoundingClientRect().left;
+                let shiftY = e.clientY - win.getBoundingClientRect().top;
+
+                const moveAt = (pageX, pageY) => {
+                    win.style.left = pageX - shiftX + 'px';
+                    win.style.top = pageY - shiftY + 'px';
+                };
+
+                const onMouseMove = (ev) => moveAt(ev.pageX, ev.pageY);
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.onmouseup = () => {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.onmouseup = null;
+                };
+            }
+
+            resizeStart(e, id) {
+                e.preventDefault();
+                e.stopPropagation();
+                const win = document.getElementById(id);
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = parseInt(document.defaultView.getComputedStyle(win).width, 10);
+                const startHeight = parseInt(document.defaultView.getComputedStyle(win).height, 10);
+
+                const doDrag = (e) => {
+                    win.style.width = (startWidth + e.clientX - startX) + 'px';
+                    win.style.height = (startHeight + e.clientY - startY) + 'px';
+                };
+
+                const stopDrag = () => {
+                    document.documentElement.removeEventListener('mousemove', doDrag, false);
+                    document.documentElement.removeEventListener('mouseup', stopDrag, false);
+                };
+
+                document.documentElement.addEventListener('mousemove', doDrag, false);
+                document.documentElement.addEventListener('mouseup', stopDrag, false);
+            }
+
+            panic() {
+                window.location.replace("http://myapps.classlink.com/");
             }
         }
+
+        const OS = new OperatingSystem();
     </script>
 </body>
 </html>
