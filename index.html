@@ -3,50 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadow OS | Monolith</title>
+    <title>ShadowV7 | Cloak Edition</title>
     <script src="https://js.puter.com/v2/" defer></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+            --bg-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');
             --accent: #3b82f6; --win-bg: #0f172a; --text: #e2e8f0;
         }
         * { box-sizing: border-box; user-select: none; }
         body { margin: 0; overflow: hidden; height: 100vh; font-family: 'Inter', sans-serif; color: var(--text); background: #000; }
-        #wallpaper { position: absolute; inset: 0; background: var(--bg-image) no-repeat center center/cover; z-index: -1; }
-        #wallpaper::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.3); }
+        #wallpaper { position: absolute; inset: 0; background: var(--bg-image) no-repeat center center/cover; z-index: -1; filter: brightness(0.4); }
 
-        /* Desktop Icons */
-        #desktop { height: calc(100vh - 48px); display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; padding: 15px; gap: 15px; }
-        .icon { width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s; text-shadow: 0 2px 5px black; }
-        .icon:hover { background: rgba(255,255,255,0.1); }
-        .icon i { font-size: 36px; margin-bottom: 5px; }
-        .icon span { font-size: 11px; font-weight: 600; text-align: center; }
+        #desktop { height: calc(100vh - 48px); display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; padding: 20px; gap: 20px; }
+        .icon { width: 85px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-shadow: 0 2px 5px black; }
+        .icon i { font-size: 40px; margin-bottom: 5px; color: var(--accent); }
+        .icon span { font-size: 10px; font-weight: 900; text-align: center; letter-spacing: 1px; }
 
-        /* Windows */
-        .window { position: absolute; background: var(--win-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; min-width: 300px; min-height: 200px; }
-        .win-bar { height: 38px; background: rgba(30, 41, 59, 0.9); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; cursor: move; }
-        .win-title { font-size: 11px; font-weight: 900; letter-spacing: 1px; }
+        .window { position: absolute; background: var(--win-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 25px 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; overflow: hidden; }
+        .win-bar { height: 40px; background: rgba(30, 41, 59, 0.95); display: flex; align-items: center; padding: 0 15px; cursor: move; }
+        .win-title { font-size: 10px; font-weight: 900; flex-grow: 1; letter-spacing: 2px; }
         .win-controls { display: flex; gap: 8px; }
         .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
 
-        /* Browser UI */
-        .browser-ui { display: flex; flex-direction: column; height: 100%; background: #fff; }
-        .address-bar { display: flex; align-items: center; gap: 10px; padding: 8px; background: #1e293b; border-bottom: 1px solid #334155; }
-        .url-box { flex-grow: 1; background: #0f172a; border: 1px solid #334155; color: #64748b; padding: 6px 15px; border-radius: 20px; font-family: 'JetBrains Mono'; font-size: 11px; outline: none; }
+        .content { flex-grow: 1; background: #000; position: relative; color: white; }
         iframe { width: 100%; height: 100%; border: none; background: white; }
+        
+        /* Browser & Notepad Specifics */
+        .url-box { flex-grow: 1; background: #0f172a; border: 1px solid #334155; color: #64748b; padding: 6px 15px; border-radius: 20px; font-family: 'JetBrains Mono'; font-size: 11px; outline: none; }
+        .notepad-textarea { width: 100%; height: 100%; background: #0f172a; color: #fff; border: none; padding: 20px; font-family: 'JetBrains Mono'; resize: none; outline: none; }
 
-        /* Apps UI */
-        .terminal { background: #0c0c0c; color: #22c55e; font-family: 'JetBrains Mono'; padding: 10px; height: 100%; font-size: 12px; overflow-y: auto; }
-        .notepad { display: flex; flex-direction: column; height: 100%; }
-        .notepad textarea { flex-grow: 1; background: #0f172a; color: white; border: none; padding: 15px; resize: none; outline: none; font-family: 'JetBrains Mono'; }
-
-        /* Taskbar & Tray */
-        #taskbar { position: absolute; bottom: 0; width: 100%; height: 48px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 15px; z-index: 10000; }
-        .tray-item { display: flex; align-items: center; gap: 6px; padding: 0 10px; border-left: 1px solid rgba(255,255,255,0.1); color: #94a3b8; font-family: 'JetBrains Mono'; font-size: 11px; }
-        .critical { color: #ef4444; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 48px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 20px; z-index: 10000; }
+        .tray { display: flex; align-items: center; gap: 15px; margin-left: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #94a3b8; }
+        
+        /* Cloak Pulse Effect */
+        .cloak-pulse { animation: pulse 2s infinite; color: #ef4444 !important; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body onload="OS.init()">
@@ -55,19 +48,21 @@
     <div id="desktop"></div>
 
     <div id="taskbar">
-        <div style="font-weight: 900; letter-spacing: 1px;">SHADOW<span style="color:var(--accent)">OS</span></div>
-        <div style="flex-grow:1;"></div>
-        <div class="tray-item" id="battery-tray">
-            <i class="material-icons-round" id="bat-icon" style="font-size:18px;">battery_full</i>
-            <span id="bat-level">--%</span>
+        <div style="font-weight: 900; letter-spacing: 2px;">SHADOW<span id="os-accent-text" style="color:var(--accent)">V7</span></div>
+        <div class="tray">
+            <div id="bat-tray" style="display:flex; align-items:center; gap:5px;">
+                <i class="material-icons-round" id="bat-icon" style="font-size:16px;">battery_full</i>
+                <span id="bat-level">--%</span>
+            </div>
+            <div id="clock">00:00</div>
         </div>
-        <div class="tray-item" id="clock">00:00</div>
     </div>
 
     <script>
         const OS = {
             zIndex: 100,
             init() {
+                this.loadSettings();
                 this.renderDesktop();
                 this.initBattery();
                 setInterval(() => {
@@ -76,19 +71,55 @@
                 document.addEventListener('keydown', e => { if(e.key === "Escape") location.href='https://google.com'; });
             },
 
+            loadSettings() {
+                const savedBg = localStorage.getItem('shadow_bg');
+                const savedAccent = localStorage.getItem('shadow_accent');
+                if(savedBg) document.getElementById('wallpaper').style.backgroundImage = `url('${savedBg}')`;
+                if(savedAccent) {
+                    document.documentElement.style.setProperty('--accent', savedAccent);
+                    document.getElementById('os-accent-text').style.color = savedAccent;
+                }
+            },
+
+            // ABOUT:BLANK CLOAKING LOGIC
+            cloakSystem() {
+                const win = window.open('about:blank', '_blank');
+                if (!win) {
+                    alert("Pop-up blocked! Please allow pop-ups for cloaking to work.");
+                    return;
+                }
+                const doc = win.document;
+                const iframe = doc.createElement('iframe');
+                const style = iframe.style;
+
+                doc.title = "about:blank";
+                style.position = "fixed";
+                style.top = style.bottom = style.left = style.right = 0;
+                style.width = style.height = "100%";
+                style.border = style.outline = "none";
+                
+                // Inject current page content into the about:blank tab
+                iframe.src = window.location.href;
+                doc.body.appendChild(iframe);
+                
+                // Redirect original page to hide tracks
+                window.location.replace('https://google.com');
+            },
+
             renderDesktop() {
                 const apps = [
-                    { id: 'browser', name: 'Browser', icon: 'public', color: '#3b82f6' },
-                    { id: 'notepad', name: 'Notepad', icon: 'edit_note', color: '#10b981' },
-                    { id: 'terminal', name: 'Terminal', icon: 'terminal', color: '#f59e0b' },
-                    { id: 'games', name: 'Games', icon: 'sports_esports', color: '#ef4444' }
+                    { id: 'cloak', name: 'Cloak', icon: 'visibility_off', special: 'cloak-pulse' },
+                    { id: 'browser', name: 'Browser', icon: 'public' },
+                    { id: 'notepad', name: 'Notepad', icon: 'edit' },
+                    { id: 'chat', name: 'Chat', icon: 'forum' },
+                    { id: 'settings', name: 'Settings', icon: 'settings' }
                 ];
                 const d = document.getElementById('desktop');
                 apps.forEach(app => {
                     const div = document.createElement('div');
                     div.className = 'icon';
-                    div.innerHTML = `<i class="material-icons-round" style="color:${app.color}">${app.icon}</i><span>${app.name}</span>`;
-                    div.onclick = () => this.openWindow(app);
+                    div.innerHTML = `<i class="material-icons-round ${app.special || ''}">${app.icon}</i><span>${app.name.toUpperCase()}</span>`;
+                    div.onclick = () => app.id === 'cloak' ? this.cloakSystem() : this.openWindow(app);
                     d.appendChild(div);
                 });
             },
@@ -97,67 +128,57 @@
                 const id = 'win_' + Date.now();
                 const win = document.createElement('div');
                 win.className = 'window'; win.id = id;
-                win.style.width = '800px'; win.style.height = '500px';
+                win.style.width = '850px'; win.style.height = '550px';
                 win.style.left = '100px'; win.style.top = '100px';
                 win.style.zIndex = ++this.zIndex;
 
                 let content = '';
-                if(app.id === 'browser') content = this.getBrowserHTML(id);
-                else if(app.id === 'notepad') content = `<div class="notepad"><textarea placeholder="Start typing..."></textarea></div>`;
-                else if(app.id === 'terminal') content = `<div class="terminal">root@shadow:~$ <span class="blink">_</span></div>`;
-                else content = `<iframe src="https://ubg365.github.io/"></iframe>`;
+                if(app.id === 'browser') {
+                    content = `<div style="display:flex; flex-direction:column; height:100%;"><div style="padding:10px; background:#1e293b;"><input type="text" id="url_${id}" class="url-box" placeholder="Search or URL..." onkeypress="if(event.key==='Enter') OS.navigate('${id}')"></div><iframe id="frame_${id}" src="about:blank"></iframe></div>`;
+                } else if(app.id === 'notepad') {
+                    const saved = localStorage.getItem('shadow_note') || "";
+                    content = `<div style="height:100%; display:flex; flex-direction:column;"><div style="padding:8px; background:#1e293b;"><button onclick="OS.saveNote('${id}')" style="background:var(--accent); border:none; color:white; padding:4px 10px; border-radius:4px; font-size:10px; cursor:pointer;">SAVE</button></div><textarea id="text_${id}" class="notepad-textarea">${saved}</textarea></div>`;
+                } else if(app.id === 'chat') {
+                    content = `<div style="height:100%; display:flex; flex-direction:column; background:#050505;"><div id="msgs_${id}" style="flex-grow:1; padding:15px; font-family:'JetBrains Mono'; font-size:12px; color:#10b981; overflow-y:auto;">[SYSTEM] Tunnel Open...</div><input type="text" style="background:#111; border:none; border-top:1px solid #222; color:white; padding:10px; font-family:'JetBrains Mono';" placeholder="Broadcast..." onkeypress="if(event.key==='Enter') OS.sendChat('${id}', this)"></div>`;
+                } else if(app.id === 'settings') {
+                    content = `<div style="padding:25px; display:flex; flex-direction:column; gap:15px;"><label style="font-size:10px; font-weight:900;">WALLPAPER URL</label><input type="text" id="set_bg" style="background:#1e293b; border:1px solid #333; color:white; padding:8px;"><button onclick="OS.applySettings()" style="background:var(--accent); border:none; color:white; padding:10px; cursor:pointer; font-weight:bold;">SAVE SETTINGS</button></div>`;
+                }
 
-                win.innerHTML = `
-                    <div class="win-bar" onmousedown="OS.dragStart(event, '${id}')">
-                        <span class="win-title">${app.name.toUpperCase()}</span>
-                        <div class="win-controls">
-                            <button class="win-btn" style="background:#22c55e" onclick="OS.maximize('${id}')"></button>
-                            <button class="win-btn" style="background:#ef4444" onclick="document.getElementById('${id}').remove()"></button>
-                        </div>
-                    </div>
-                    <div style="flex-grow:1; overflow:hidden;">${content}</div>
-                `;
+                win.innerHTML = `<div class="win-bar" onmousedown="OS.dragStart(event, '${id}')"><div class="win-title">${app.name.toUpperCase()}</div><div class="win-controls"><button class="win-btn" style="background:#22c55e" onclick="OS.maximize('${id}')"></button><button class="win-btn" style="background:#ef4444" onclick="document.getElementById('${id}').remove()"></button></div></div><div class="content">${content}</div>`;
                 document.body.appendChild(win);
             },
 
-            getBrowserHTML(winId) {
-                return `
-                    <div class="browser-ui">
-                        <div class="address-bar">
-                            <input type="text" class="url-box" id="url_${winId}" placeholder="Search or enter URL..." onkeypress="if(event.key==='Enter') OS.navigate('${winId}')">
-                        </div>
-                        <iframe id="frame_${winId}" src="about:blank"></iframe>
-                    </div>`;
-            },
-
-            async navigate(winId) {
+            navigate(winId) {
                 const input = document.getElementById(`url_${winId}`);
                 const frame = document.getElementById(`frame_${winId}`);
-                let raw = input.value;
-                let target = raw.includes('.') && !raw.includes(' ') ? (raw.startsWith('http') ? raw : 'https://' + raw) : `https://www.google.com/search?q=${encodeURIComponent(raw)}&igu=1`;
-                
-                // Obfuscate URL Box
-                input.value = "system_idx_" + btoa(target).substring(0, 12) + "_" + Math.random().toString(36).substring(7) + ".tmp";
-                input.blur();
+                let url = input.value;
+                if(!url.includes('.') || url.includes(' ')) url = `https://www.google.com/search?q=${encodeURIComponent(url)}&igu=1`;
+                else if(!url.startsWith('http')) url = 'https://' + url;
+                input.value = "sys_secure_" + btoa(url).substring(0, 12) + ".tmp";
+                frame.src = url;
+            },
 
-                try {
-                    const resp = await puter.net.fetch(target);
-                    const blob = await resp.blob();
-                    frame.src = URL.createObjectURL(blob);
-                } catch (e) { frame.src = target; }
+            saveNote(id) { localStorage.setItem('shadow_note', document.getElementById(`text_${id}`).value); alert("Disk Synced."); },
+
+            sendChat(id, input) {
+                const box = document.getElementById(`msgs_${id}`);
+                box.innerHTML += `<div><span style="color:var(--accent)">[ADMIN]:</span> ${input.value}</div>`;
+                input.value = ''; box.scrollTop = box.scrollHeight;
+            },
+
+            applySettings() {
+                const bg = document.getElementById('set_bg').value;
+                if(bg) { localStorage.setItem('shadow_bg', bg); document.getElementById('wallpaper').style.backgroundImage = `url('${bg}')`; }
+                alert("Updated.");
             },
 
             initBattery() {
-                if (!navigator.getBattery) return;
-                navigator.getBattery().then(bat => {
-                    const update = () => {
-                        const level = Math.round(bat.level * 100);
-                        document.getElementById('bat-level').innerText = level + '%';
-                        const icon = document.getElementById('bat-icon');
-                        icon.innerText = bat.charging ? 'battery_charging_full' : (level < 20 ? 'battery_alert' : 'battery_full');
-                        if(level < 20 && !bat.charging) icon.classList.add('critical'); else icon.classList.remove('critical');
+                if (navigator.getBattery) navigator.getBattery().then(bat => {
+                    const up = () => {
+                        document.getElementById('bat-level').innerText = Math.round(bat.level * 100) + '%';
+                        document.getElementById('bat-icon').innerText = bat.charging ? 'battery_charging_full' : 'battery_full';
                     };
-                    update(); bat.onlevelchange = update; bat.onchargingchange = update;
+                    up(); bat.onlevelchange = up; bat.onchargingchange = up;
                 });
             },
 
@@ -171,7 +192,7 @@
 
             maximize(id) {
                 const w = document.getElementById(id);
-                if(w.style.width === '100%') { w.style.width='800px'; w.style.height='500px'; }
+                if(w.style.width === '100%') { w.style.width='850px'; w.style.height='550px'; }
                 else { w.style.width='100%'; w.style.height='calc(100vh - 48px)'; w.style.top='0'; w.style.left='0'; }
             }
         };
