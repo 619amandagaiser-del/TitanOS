@@ -2,105 +2,124 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Shadow | Dashboard</title>
+    <title>ShadowV3 | Workspace</title>
     <script src="https://js.puter.com/v2/"></script>
     <style>
-        :root { --primary: #38bdf8; --bg: #0b0f1a; --card: #161b2a; }
-        body, html { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
-        
-        /* Central UI Layout */
-        #main-ui { display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; }
-        .container { background: var(--card); padding: 3.5rem; border-radius: 24px; text-align: center; width: 450px; border: 1px solid #2d3748; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        
-        h1 { font-size: 4rem; margin: 0; background: linear-gradient(to bottom, #fff, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; font-weight: 900; }
-        p { color: #64748b; margin-top: -5px; margin-bottom: 2.5rem; font-size: 0.9rem; letter-spacing: 1px; }
-        
-        input { width: 100%; padding: 16px; margin-bottom: 1.2rem; border-radius: 12px; border: 1px solid #2d3748; background: #0b0f1a; color: white; box-sizing: border-box; outline: none; transition: 0.3s; font-size: 1rem; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
-        
-        .launch-btn { width: 100%; padding: 16px; background: var(--primary); color: #0b0f1a; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 1rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .launch-btn:hover { transform: translateY(-2px); background: #7dd3fc; }
-        
-        .cloak-link { margin-top: 1.5rem; color: #475569; font-size: 0.75rem; cursor: pointer; text-decoration: none; border: none; background: none; transition: 0.3s; }
-        .cloak-link:hover { color: var(--primary); }
+        :root { --bg: #05070a; --accent: #3b82f6; --ui-border: #1e293b; --tab-bg: #111827; }
+        body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; }
 
-        /* Fullscreen Content Viewer */
-        #viewer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: none; z-index: 9999; }
+        /* Custom UI Frame */
+        .tab-container { background: #0a0f1a; display: flex; align-items: center; padding: 10px 15px; gap: 5px; border-bottom: 1px solid var(--ui-border); height: 45px; }
+        .tab { background: var(--tab-bg); padding: 8px 18px; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px; font-size: 13px; border: 1px solid var(--ui-border); border-bottom: none; cursor: pointer; min-width: 120px; }
+        .tab.active { background: #1e293b; border-color: var(--accent); }
+        
+        .nav-bar { background: #0a0f1a; display: flex; align-items: center; padding: 10px 20px; gap: 20px; border-bottom: 1px solid var(--ui-border); }
+        .address-bar-wrapper { background: #05070a; border: 1px solid var(--ui-border); border-radius: 25px; flex-grow: 1; padding: 8px 25px; display: flex; align-items: center; }
+        .address-bar-wrapper input { background: transparent; border: none; color: #94a3b8; width: 100%; outline: none; font-size: 14px; }
+
+        /* Centered Branding and UI */
+        .main-frame { 
+            flex-grow: 1; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            background: radial-gradient(circle at center, #1e3a8a 0%, #05070a 85%);
+            height: calc(100vh - 110px);
+        }
+
+        .shadow-title { font-size: 140px; font-weight: 900; margin: 0; letter-spacing: -8px; color: #60a5fa; text-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        .shadow-tagline { color: #64748b; font-size: 14px; letter-spacing: 3px; margin-top: -10px; text-transform: uppercase; }
+
+        /* Proxy Container */
+        #proxy-container { position: fixed; top: 110px; left: 0; width: 100%; height: calc(100vh - 110px); background: white; display: none; z-index: 10; border: none; }
+        
+        .footer-tag { position: absolute; bottom: 30px; left: 30px; background: rgba(15, 23, 42, 0.8); padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 13px; border: 1px solid var(--ui-border); }
+        .status-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
     </style>
 </head>
 <body>
 
-    <div id="main-ui">
-        <div class="container">
-            <h1>Shadow</h1>
-            <p>ADVANCED WEB TUNNEL</p>
-            
-            <input type="text" id="target" placeholder="Enter Destination URL..." onkeypress="if(event.key==='Enter') launch()">
-            
-            <button class="launch-btn" onclick="launch()">
-                Launch Tunnel <span>→</span>
-            </button>
-            
-            <button class="cloak-link" onclick="cloak()">Run in About:Blank Mode</button>
+    <div class="tab-container">
+        <div class="tab active" onclick="showHome()">🏠 Home</div>
+        <div style="color: #94a3b8; font-size: 22px; cursor: pointer; padding: 0 10px;">+</div>
+    </div>
+
+    <div class="nav-bar">
+        <div style="display:flex; gap:15px; color:#94a3b8;"><span>←</span> <span>→</span> <span onclick="location.reload()" style="cursor:pointer">↻</span></div>
+        <div class="address-bar-wrapper">
+            <input type="text" id="urlInput" placeholder="Enter URL (e.g. calcsolver.net)" onkeypress="if(event.key==='Enter') launchProxy()">
+        </div>
+        <div style="color:#94a3b8; cursor:pointer;" onclick="cloak()">❐ Cloak Mode</div>
+    </div>
+
+    <div class="main-frame" id="mainUI">
+        <h1 class="shadow-title">Shadow</h1>
+        <div class="shadow-tagline">discord.gg/goshadow</div>
+
+        <div class="footer-tag">
+            <div class="status-dot"></div>
+            ShadowV3 System | Panic: <b>Esc</b>
         </div>
     </div>
 
-    <div id="viewer"></div>
+    <div id="proxy-container"></div>
 
     <script>
-        // PANIC KEY: Press Escape to instantly switch to Google Classroom
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") {
-                window.location.replace("https://classroom.google.com");
-            }
+        // Panic Key to ClassLink
+        document.addEventListener('keydown', e => {
+            if(e.key === "Escape") window.location.replace("http://myapps.classlink.com/");
         });
 
-        // CLOAK MODE
-        function cloak() {
-            const win = window.open();
-            if (!win) {
-                alert("Please allow popups for Stealth Mode!");
-                return;
-            }
-            const url = window.location.href;
-            win.document.body.style.margin = "0";
-            win.document.body.style.height = "100vh";
-            win.document.body.innerHTML = `<iframe src="${url}" style="border:none;width:100%;height:100%;margin:0;"></iframe>`;
-            window.location.replace("https://google.com"); 
+        function showHome() {
+            document.getElementById('proxy-container').style.display = 'none';
+            document.getElementById('mainUI').style.display = 'flex';
         }
 
-        // PROXY ENGINE
-        async function launch() {
-            const target = document.getElementById('target').value;
+        // About:Blank Stealth Mode
+        function cloak() {
+            const win = window.open();
+            if (!win) return alert("Allow popups!");
+            win.document.body.style.margin = "0";
+            win.document.body.innerHTML = `<iframe src="${window.location.href}" style="border:none;width:100%;height:100vh;margin:0;padding:0;overflow:hidden;"></iframe>`;
+            window.location.replace("http://myapps.classlink.com/"); // Switch original tab
+        }
+
+        // Proxy Engine
+        async function launchProxy() {
+            const target = document.getElementById('urlInput').value;
             if (!target) return;
 
-            const btn = document.querySelector('.launch-btn');
-            btn.innerHTML = "Opening Tunnel...";
-            btn.style.opacity = "0.7";
+            const proxyFrame = document.getElementById('proxy-container');
+            proxyFrame.style.display = 'block';
+            document.getElementById('mainUI').style.display = 'none';
+            proxyFrame.innerHTML = "<div style='color:black; padding:20px; font-family:sans-serif;'>Connecting to Tunnel...</div>";
 
             try {
-                const resp = await puter.net.fetch(target);
+                const finalUrl = target.startsWith('http') ? target : 'https://' + target;
+                const resp = await puter.net.fetch(finalUrl);
                 let html = await resp.text();
 
-                // Inject base tag for assets
-                const base = `<base href="${target}">`;
+                // Remove ad scripts and inject base
+                const base = `<base href="${finalUrl}">`;
+                html = html.replace(/<script.*adsystem.*<\/script>/gi, ''); 
                 html = html.includes('<head>') ? html.replace('<head>', `<head>${base}`) : base + html;
+                
+                proxyFrame.innerHTML = html;
 
-                // Switch to viewer
-                document.getElementById('main-ui').style.display = 'none';
-                const viewer = document.getElementById('viewer');
-                viewer.style.display = 'block';
-                viewer.innerHTML = html;
-
-                // Execute scripts manually
-                document.querySelectorAll("script").forEach(s => {
-                    const newS = document.createElement("script");
-                    newS.text = s.text;
-                    document.head.appendChild(newS).parentNode.removeChild(newS);
+                // Re-execute scripts
+                const scripts = proxyFrame.querySelectorAll("script");
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement("script");
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
+
             } catch (e) {
-                alert("Error connecting. Try a different URL.");
-                location.reload();
+                alert("ShadowV3: Access Refused.");
+                showHome();
             }
         }
     </script>
