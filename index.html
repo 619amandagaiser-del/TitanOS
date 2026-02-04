@@ -3,43 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShadowV7 | Cloak Edition</title>
+    <title>ShadowOS | Ultimate</title>
     <script src="https://js.puter.com/v2/" defer></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');
-            --accent: #3b82f6; --win-bg: #0f172a; --text: #e2e8f0;
+            --bg: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');
+            --accent: #3b82f6; --win-bg: #0f172a; --text: #e2e8f0; --discord: #313338;
         }
         * { box-sizing: border-box; user-select: none; }
         body { margin: 0; overflow: hidden; height: 100vh; font-family: 'Inter', sans-serif; color: var(--text); background: #000; }
-        #wallpaper { position: absolute; inset: 0; background: var(--bg-image) no-repeat center center/cover; z-index: -1; filter: brightness(0.4); }
+        #wallpaper { position: absolute; inset: 0; background: var(--bg) no-repeat center center/cover; z-index: -1; filter: brightness(0.4); }
 
+        /* Desktop & Icons */
         #desktop { height: calc(100vh - 48px); display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; padding: 20px; gap: 20px; }
         .icon { width: 85px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-shadow: 0 2px 5px black; }
         .icon i { font-size: 40px; margin-bottom: 5px; color: var(--accent); }
         .icon span { font-size: 10px; font-weight: 900; text-align: center; letter-spacing: 1px; }
 
+        /* Windows */
         .window { position: absolute; background: var(--win-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 25px 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; overflow: hidden; }
         .win-bar { height: 40px; background: rgba(30, 41, 59, 0.95); display: flex; align-items: center; padding: 0 15px; cursor: move; }
         .win-title { font-size: 10px; font-weight: 900; flex-grow: 1; letter-spacing: 2px; }
         .win-controls { display: flex; gap: 8px; }
         .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
 
-        .content { flex-grow: 1; background: #000; position: relative; color: white; }
-        iframe { width: 100%; height: 100%; border: none; background: white; }
-        
-        /* Browser & Notepad Specifics */
-        .url-box { flex-grow: 1; background: #0f172a; border: 1px solid #334155; color: #64748b; padding: 6px 15px; border-radius: 20px; font-family: 'JetBrains Mono'; font-size: 11px; outline: none; }
-        .notepad-textarea { width: 100%; height: 100%; background: #0f172a; color: #fff; border: none; padding: 20px; font-family: 'JetBrains Mono'; resize: none; outline: none; }
+        /* Discord UI Styling */
+        .discord-container { display: flex; height: 100%; background: var(--discord); }
+        .discord-sidebar { width: 60px; background: #1e1f22; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 10px; }
+        .discord-btn { width: 40px; height: 40px; background: #35363c; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #dbdee1; transition: 0.2s; }
+        .discord-btn:hover { border-radius: 12px; background: #5865f2; color: white; }
+        .discord-main { flex-grow: 1; display: flex; flex-direction: column; }
+        .msg-area { flex-grow: 1; padding: 20px; overflow-y: auto; color: #dcddde; font-size: 14px; }
+        .call-overlay { position: absolute; inset: 0; background: #000; z-index: 100; display: none; }
 
+        /* Taskbar */
         #taskbar { position: absolute; bottom: 0; width: 100%; height: 48px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 20px; z-index: 10000; }
         .tray { display: flex; align-items: center; gap: 15px; margin-left: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #94a3b8; }
         
-        /* Cloak Pulse Effect */
-        .cloak-pulse { animation: pulse 2s infinite; color: #ef4444 !important; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        iframe { width: 100%; height: 100%; border: none; background: white; }
+        .url-box { flex-grow: 1; background: #0f172a; border: 1px solid #334155; color: #64748b; padding: 6px 15px; border-radius: 20px; font-family: 'JetBrains Mono'; font-size: 11px; outline: none; }
     </style>
 </head>
 <body onload="OS.init()">
@@ -48,12 +52,9 @@
     <div id="desktop"></div>
 
     <div id="taskbar">
-        <div style="font-weight: 900; letter-spacing: 2px;">SHADOW<span id="os-accent-text" style="color:var(--accent)">V7</span></div>
+        <div style="font-weight: 900; letter-spacing: 2px;">SHADOW<span style="color:var(--accent)">V8</span></div>
         <div class="tray">
-            <div id="bat-tray" style="display:flex; align-items:center; gap:5px;">
-                <i class="material-icons-round" id="bat-icon" style="font-size:16px;">battery_full</i>
-                <span id="bat-level">--%</span>
-            </div>
+            <div style="display:flex; align-items:center; gap:5px;"><i class="material-icons-round" id="bat-icon" style="font-size:16px;">battery_full</i><span id="bat-level">--%</span></div>
             <div id="clock">00:00</div>
         </div>
     </div>
@@ -62,64 +63,46 @@
         const OS = {
             zIndex: 100,
             init() {
-                this.loadSettings();
                 this.renderDesktop();
                 this.initBattery();
+                this.loadStyles();
                 setInterval(() => {
                     document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 }, 1000);
                 document.addEventListener('keydown', e => { if(e.key === "Escape") location.href='https://google.com'; });
             },
 
-            loadSettings() {
-                const savedBg = localStorage.getItem('shadow_bg');
-                const savedAccent = localStorage.getItem('shadow_accent');
-                if(savedBg) document.getElementById('wallpaper').style.backgroundImage = `url('${savedBg}')`;
-                if(savedAccent) {
-                    document.documentElement.style.setProperty('--accent', savedAccent);
-                    document.getElementById('os-accent-text').style.color = savedAccent;
-                }
+            loadStyles() {
+                const acc = localStorage.getItem('sh_accent');
+                if(acc) document.documentElement.style.setProperty('--accent', acc);
             },
 
-            // ABOUT:BLANK CLOAKING LOGIC
-            cloakSystem() {
+            cloak() {
                 const win = window.open('about:blank', '_blank');
-                if (!win) {
-                    alert("Pop-up blocked! Please allow pop-ups for cloaking to work.");
-                    return;
-                }
                 const doc = win.document;
                 const iframe = doc.createElement('iframe');
-                const style = iframe.style;
-
                 doc.title = "about:blank";
-                style.position = "fixed";
-                style.top = style.bottom = style.left = style.right = 0;
-                style.width = style.height = "100%";
-                style.border = style.outline = "none";
-                
-                // Inject current page content into the about:blank tab
+                iframe.style = "position:fixed; top:0; left:0; width:100%; height:100%; border:none;";
                 iframe.src = window.location.href;
                 doc.body.appendChild(iframe);
-                
-                // Redirect original page to hide tracks
                 window.location.replace('https://google.com');
             },
 
             renderDesktop() {
                 const apps = [
-                    { id: 'cloak', name: 'Cloak', icon: 'visibility_off', special: 'cloak-pulse' },
+                    { id: 'cloak', name: 'Cloak', icon: 'visibility_off' },
                     { id: 'browser', name: 'Browser', icon: 'public' },
+                    { id: 'chat', name: 'ShadowLink', icon: 'forum' },
                     { id: 'notepad', name: 'Notepad', icon: 'edit' },
-                    { id: 'chat', name: 'Chat', icon: 'forum' },
+                    { id: 'games', name: 'Arcade', icon: 'sports_esports' },
                     { id: 'settings', name: 'Settings', icon: 'settings' }
                 ];
                 const d = document.getElementById('desktop');
                 apps.forEach(app => {
                     const div = document.createElement('div');
                     div.className = 'icon';
-                    div.innerHTML = `<i class="material-icons-round ${app.special || ''}">${app.icon}</i><span>${app.name.toUpperCase()}</span>`;
-                    div.onclick = () => app.id === 'cloak' ? this.cloakSystem() : this.openWindow(app);
+                    div.innerHTML = `<i class="material-icons-round">${app.icon}</i><span>${app.name.toUpperCase()}</span>`;
+                    div.onclick = () => app.id === 'cloak' ? this.cloak() : this.openWindow(app);
                     d.appendChild(div);
                 });
             },
@@ -128,23 +111,33 @@
                 const id = 'win_' + Date.now();
                 const win = document.createElement('div');
                 win.className = 'window'; win.id = id;
-                win.style.width = '850px'; win.style.height = '550px';
-                win.style.left = '100px'; win.style.top = '100px';
+                win.style.width = '900px'; win.style.height = '600px';
+                win.style.left = '50px'; win.style.top = '50px';
                 win.style.zIndex = ++this.zIndex;
 
                 let content = '';
                 if(app.id === 'browser') {
-                    content = `<div style="display:flex; flex-direction:column; height:100%;"><div style="padding:10px; background:#1e293b;"><input type="text" id="url_${id}" class="url-box" placeholder="Search or URL..." onkeypress="if(event.key==='Enter') OS.navigate('${id}')"></div><iframe id="frame_${id}" src="about:blank"></iframe></div>`;
-                } else if(app.id === 'notepad') {
-                    const saved = localStorage.getItem('shadow_note') || "";
-                    content = `<div style="height:100%; display:flex; flex-direction:column;"><div style="padding:8px; background:#1e293b;"><button onclick="OS.saveNote('${id}')" style="background:var(--accent); border:none; color:white; padding:4px 10px; border-radius:4px; font-size:10px; cursor:pointer;">SAVE</button></div><textarea id="text_${id}" class="notepad-textarea">${saved}</textarea></div>`;
+                    content = `<div style="display:flex; flex-direction:column; height:100%;"><div style="padding:10px; background:#1e293b; display:flex;"><input type="text" id="url_${id}" class="url-box" placeholder="Search or URL..." onkeypress="if(event.key==='Enter') OS.navigate('${id}')"></div><iframe id="frame_${id}" src="about:blank"></iframe></div>`;
                 } else if(app.id === 'chat') {
-                    content = `<div style="height:100%; display:flex; flex-direction:column; background:#050505;"><div id="msgs_${id}" style="flex-grow:1; padding:15px; font-family:'JetBrains Mono'; font-size:12px; color:#10b981; overflow-y:auto;">[SYSTEM] Tunnel Open...</div><input type="text" style="background:#111; border:none; border-top:1px solid #222; color:white; padding:10px; font-family:'JetBrains Mono';" placeholder="Broadcast..." onkeypress="if(event.key==='Enter') OS.sendChat('${id}', this)"></div>`;
+                    content = `
+                        <div class="discord-container">
+                            <div class="discord-sidebar"><div class="discord-btn" onclick="OS.startCall('${id}')"><i class="material-icons-round">call</i></div></div>
+                            <div class="discord-main">
+                                <div style="padding:15px; border-bottom:1px solid #26272d; font-weight:900; font-size:12px;"># ENCRYPTED-CHANNEL</div>
+                                <div class="msg-area" id="msgs_${id}">[SYS] Secure. Hit phone for P2P video/voice.</div>
+                                <div style="padding:15px;"><input type="text" style="width:100%; background:#383a40; border:none; padding:10px; border-radius:5px; color:white; outline:none;" placeholder="Message..." onkeypress="if(event.key==='Enter') OS.sendChat('${id}', this)"></div>
+                            </div>
+                            <div id="call_${id}" class="call-overlay"></div>
+                        </div>`;
+                } else if(app.id === 'notepad') {
+                    content = `<textarea id="note_${id}" style="width:100%; height:100%; background:#0f172a; color:white; border:none; padding:20px; outline:none; font-family:'JetBrains Mono'; resize:none;" oninput="localStorage.setItem('sh_note', this.value)">${localStorage.getItem('sh_note')||''}</textarea>`;
                 } else if(app.id === 'settings') {
-                    content = `<div style="padding:25px; display:flex; flex-direction:column; gap:15px;"><label style="font-size:10px; font-weight:900;">WALLPAPER URL</label><input type="text" id="set_bg" style="background:#1e293b; border:1px solid #333; color:white; padding:8px;"><button onclick="OS.applySettings()" style="background:var(--accent); border:none; color:white; padding:10px; cursor:pointer; font-weight:bold;">SAVE SETTINGS</button></div>`;
+                    content = `<div style="padding:30px;"><label>ACCENT COLOR</label><br><input type="color" onchange="OS.setAccent(this.value)" style="margin-top:10px; cursor:pointer;"></div>`;
+                } else {
+                    content = `<iframe src="https://ubg365.github.io/"></iframe>`;
                 }
 
-                win.innerHTML = `<div class="win-bar" onmousedown="OS.dragStart(event, '${id}')"><div class="win-title">${app.name.toUpperCase()}</div><div class="win-controls"><button class="win-btn" style="background:#22c55e" onclick="OS.maximize('${id}')"></button><button class="win-btn" style="background:#ef4444" onclick="document.getElementById('${id}').remove()"></button></div></div><div class="content">${content}</div>`;
+                win.innerHTML = `<div class="win-bar" onmousedown="OS.dragStart(event, '${id}')"><div class="win-title">${app.name.toUpperCase()}</div><div class="win-controls"><button class="win-btn" style="background:#22c55e" onclick="OS.maximize('${id}')"></button><button class="win-btn" style="background:#ef4444" onclick="document.getElementById('${id}').remove()"></button></div></div><div style="flex-grow:1; position:relative; overflow:hidden;">${content}</div>`;
                 document.body.appendChild(win);
             },
 
@@ -154,23 +147,23 @@
                 let url = input.value;
                 if(!url.includes('.') || url.includes(' ')) url = `https://www.google.com/search?q=${encodeURIComponent(url)}&igu=1`;
                 else if(!url.startsWith('http')) url = 'https://' + url;
-                input.value = "sys_secure_" + btoa(url).substring(0, 12) + ".tmp";
-                frame.src = url;
+                input.value = "sys_secure_" + btoa(url).substring(0, 10) + ".tmp";
+                frame.src = `https://api.codetabs.com/v1/proxy?quest=${url}`;
             },
 
-            saveNote(id) { localStorage.setItem('shadow_note', document.getElementById(`text_${id}`).value); alert("Disk Synced."); },
+            startCall(id) {
+                const overlay = document.getElementById(`call_${id}`);
+                overlay.style.display = 'block';
+                overlay.innerHTML = `<iframe src="https://meet.jit.si/ShadowCall_${Math.random().toString(36).substring(7)}" allow="camera; microphone; fullscreen; autoplay" style="width:100%; height:100%;"></iframe><button onclick="this.parentElement.style.display='none'; this.parentElement.innerHTML=''" style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:#ef4444; border:none; color:white; padding:10px 20px; border-radius:5px; cursor:pointer;">END CALL</button>`;
+            },
 
             sendChat(id, input) {
                 const box = document.getElementById(`msgs_${id}`);
-                box.innerHTML += `<div><span style="color:var(--accent)">[ADMIN]:</span> ${input.value}</div>`;
+                box.innerHTML += `<div><span style="color:var(--accent); font-weight:bold;">Admin:</span> ${input.value}</div>`;
                 input.value = ''; box.scrollTop = box.scrollHeight;
             },
 
-            applySettings() {
-                const bg = document.getElementById('set_bg').value;
-                if(bg) { localStorage.setItem('shadow_bg', bg); document.getElementById('wallpaper').style.backgroundImage = `url('${bg}')`; }
-                alert("Updated.");
-            },
+            setAccent(val) { localStorage.setItem('sh_accent', val); document.documentElement.style.setProperty('--accent', val); },
 
             initBattery() {
                 if (navigator.getBattery) navigator.getBattery().then(bat => {
@@ -192,7 +185,7 @@
 
             maximize(id) {
                 const w = document.getElementById(id);
-                if(w.style.width === '100%') { w.style.width='850px'; w.style.height='550px'; }
+                if(w.style.width === '100%') { w.style.width='900px'; w.style.height='600px'; }
                 else { w.style.width='100%'; w.style.height='calc(100vh - 48px)'; w.style.top='0'; w.style.left='0'; }
             }
         };
