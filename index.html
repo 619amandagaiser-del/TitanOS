@@ -3,129 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShadowV5.3 | Stealth</title>
+    <title>Shadow OS | Monolith</title>
     <script src="https://js.puter.com/v2/" defer></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Inter:wght@400;900&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #3b82f6; --win-bg: #0f172a; --text: #e2e8f0; }
-        body { margin: 0; overflow: hidden; height: 100vh; font-family: 'Inter', sans-serif; background: #000; color: var(--text); }
-        
-        #desktop { height: calc(100vh - 48px); padding: 20px; display: flex; flex-direction: column; gap: 20px; background: radial-gradient(circle at center, #1e293b 0%, #000 100%); }
-        
-        .icon { width: 70px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .icon:hover { transform: scale(1.1); }
-        .icon i { font-size: 40px; color: var(--accent); }
-        .icon span { display: block; font-size: 11px; margin-top: 5px; font-weight: bold; }
+        :root {
+            --bg-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+            --accent: #3b82f6; --win-bg: #0f172a; --text: #e2e8f0;
+        }
+        * { box-sizing: border-box; user-select: none; }
+        body { margin: 0; overflow: hidden; height: 100vh; font-family: 'Inter', sans-serif; color: var(--text); background: #000; }
+        #wallpaper { position: absolute; inset: 0; background: var(--bg-image) no-repeat center center/cover; z-index: -1; }
+        #wallpaper::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.3); }
 
-        /* Window & Internal Browser */
-        .window { position: absolute; background: var(--win-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .win-bar { height: 40px; background: #1e293b; display: flex; align-items: center; padding: 0 15px; cursor: move; }
-        .win-title { font-size: 12px; font-weight: 900; flex-grow: 1; letter-spacing: 1px; }
-        
+        /* Desktop Icons */
+        #desktop { height: calc(100vh - 48px); display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; padding: 15px; gap: 15px; }
+        .icon { width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s; text-shadow: 0 2px 5px black; }
+        .icon:hover { background: rgba(255,255,255,0.1); }
+        .icon i { font-size: 36px; margin-bottom: 5px; }
+        .icon span { font-size: 11px; font-weight: 600; text-align: center; }
+
+        /* Windows */
+        .window { position: absolute; background: var(--win-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; min-width: 300px; min-height: 200px; }
+        .win-bar { height: 38px; background: rgba(30, 41, 59, 0.9); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; cursor: move; }
+        .win-title { font-size: 11px; font-weight: 900; letter-spacing: 1px; }
+        .win-controls { display: flex; gap: 8px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
+
+        /* Browser UI */
         .browser-ui { display: flex; flex-direction: column; height: 100%; background: #fff; }
-        .address-bar { display: flex; align-items: center; gap: 10px; padding: 10px; background: #0f172a; border-bottom: 1px solid #334155; }
-        .url-box { flex-grow: 1; background: #1e293b; border: 1px solid #334155; color: #64748b; padding: 8px 15px; border-radius: 6px; font-family: 'JetBrains Mono'; font-size: 11px; outline: none; }
-        .url-box:focus { color: #fff; border-color: var(--accent); }
-
+        .address-bar { display: flex; align-items: center; gap: 10px; padding: 8px; background: #1e293b; border-bottom: 1px solid #334155; }
+        .url-box { flex-grow: 1; background: #0f172a; border: 1px solid #334155; color: #64748b; padding: 6px 15px; border-radius: 20px; font-family: 'JetBrains Mono'; font-size: 11px; outline: none; }
         iframe { width: 100%; height: 100%; border: none; background: white; }
 
-        #taskbar { position: absolute; bottom: 0; width: 100%; height: 48px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 20px; }
-        .panic-btn { color: #ef4444; font-size: 10px; font-weight: bold; cursor: pointer; margin-left: auto; }
+        /* Apps UI */
+        .terminal { background: #0c0c0c; color: #22c55e; font-family: 'JetBrains Mono'; padding: 10px; height: 100%; font-size: 12px; overflow-y: auto; }
+        .notepad { display: flex; flex-direction: column; height: 100%; }
+        .notepad textarea { flex-grow: 1; background: #0f172a; color: white; border: none; padding: 15px; resize: none; outline: none; font-family: 'JetBrains Mono'; }
+
+        /* Taskbar & Tray */
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 48px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 15px; z-index: 10000; }
+        .tray-item { display: flex; align-items: center; gap: 6px; padding: 0 10px; border-left: 1px solid rgba(255,255,255,0.1); color: #94a3b8; font-family: 'JetBrains Mono'; font-size: 11px; }
+        .critical { color: #ef4444; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
     </style>
 </head>
 <body onload="OS.init()">
 
-    <div id="desktop">
-        <div class="icon" onclick="OS.openBrowser()">
-            <i class="material-icons-round">public</i>
-            <span>BROWSER</span>
-        </div>
-    </div>
+    <div id="wallpaper"></div>
+    <div id="desktop"></div>
 
     <div id="taskbar">
-        <div style="font-weight: 900; font-size: 14px;">SHADOW <span style="color:var(--accent)">OS</span></div>
-        <div class="panic-btn" onclick="location.href='https://google.com'">ESC TO PANIC</div>
+        <div style="font-weight: 900; letter-spacing: 1px;">SHADOW<span style="color:var(--accent)">OS</span></div>
+        <div style="flex-grow:1;"></div>
+        <div class="tray-item" id="battery-tray">
+            <i class="material-icons-round" id="bat-icon" style="font-size:18px;">battery_full</i>
+            <span id="bat-level">--%</span>
+        </div>
+        <div class="tray-item" id="clock">00:00</div>
     </div>
 
     <script>
         const OS = {
+            zIndex: 100,
             init() {
+                this.renderDesktop();
+                this.initBattery();
+                setInterval(() => {
+                    document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                }, 1000);
                 document.addEventListener('keydown', e => { if(e.key === "Escape") location.href='https://google.com'; });
             },
 
-            // Generator for the random obfuscated string
-            generateGarbage(url) {
-                const prefix = "system_idx_";
-                const randomHash = btoa(url).substring(0, 16); // Base64 encode the URL
-                const entropy = Math.random().toString(36).substring(7);
-                return `${prefix}${randomHash}_${entropy}.tmp`;
+            renderDesktop() {
+                const apps = [
+                    { id: 'browser', name: 'Browser', icon: 'public', color: '#3b82f6' },
+                    { id: 'notepad', name: 'Notepad', icon: 'edit_note', color: '#10b981' },
+                    { id: 'terminal', name: 'Terminal', icon: 'terminal', color: '#f59e0b' },
+                    { id: 'games', name: 'Games', icon: 'sports_esports', color: '#ef4444' }
+                ];
+                const d = document.getElementById('desktop');
+                apps.forEach(app => {
+                    const div = document.createElement('div');
+                    div.className = 'icon';
+                    div.innerHTML = `<i class="material-icons-round" style="color:${app.color}">${app.icon}</i><span>${app.name}</span>`;
+                    div.onclick = () => this.openWindow(app);
+                    d.appendChild(div);
+                });
             },
 
-            openBrowser() {
+            openWindow(app) {
                 const id = 'win_' + Date.now();
                 const win = document.createElement('div');
-                win.className = 'window';
-                win.id = id;
-                win.style.width = '900px'; win.style.height = '600px';
-                win.style.left = '50px'; win.style.top = '50px';
+                win.className = 'window'; win.id = id;
+                win.style.width = '800px'; win.style.height = '500px';
+                win.style.left = '100px'; win.style.top = '100px';
+                win.style.zIndex = ++this.zIndex;
+
+                let content = '';
+                if(app.id === 'browser') content = this.getBrowserHTML(id);
+                else if(app.id === 'notepad') content = `<div class="notepad"><textarea placeholder="Start typing..."></textarea></div>`;
+                else if(app.id === 'terminal') content = `<div class="terminal">root@shadow:~$ <span class="blink">_</span></div>`;
+                else content = `<iframe src="https://ubg365.github.io/"></iframe>`;
 
                 win.innerHTML = `
                     <div class="win-bar" onmousedown="OS.dragStart(event, '${id}')">
-                        <div class="win-title">SHADOW BROWSER</div>
-                        <div onclick="document.getElementById('${id}').remove()" style="cursor:pointer; color:#ef4444;">✕</div>
-                    </div>
-                    <div class="browser-ui">
-                        <div class="address-bar">
-                            <i class="material-icons-round" style="font-size:18px; color:#475569;">lock</i>
-                            <input type="text" class="url-box" id="url_${id}" 
-                                placeholder="Search or enter URL..." 
-                                onfocus="this.value=''" 
-                                onkeypress="if(event.key==='Enter') OS.navigate('${id}')">
+                        <span class="win-title">${app.name.toUpperCase()}</span>
+                        <div class="win-controls">
+                            <button class="win-btn" style="background:#22c55e" onclick="OS.maximize('${id}')"></button>
+                            <button class="win-btn" style="background:#ef4444" onclick="document.getElementById('${id}').remove()"></button>
                         </div>
-                        <iframe id="frame_${id}" src="about:blank"></iframe>
                     </div>
+                    <div style="flex-grow:1; overflow:hidden;">${content}</div>
                 `;
                 document.body.appendChild(win);
+            },
+
+            getBrowserHTML(winId) {
+                return `
+                    <div class="browser-ui">
+                        <div class="address-bar">
+                            <input type="text" class="url-box" id="url_${winId}" placeholder="Search or enter URL..." onkeypress="if(event.key==='Enter') OS.navigate('${winId}')">
+                        </div>
+                        <iframe id="frame_${winId}" src="about:blank"></iframe>
+                    </div>`;
             },
 
             async navigate(winId) {
                 const input = document.getElementById(`url_${winId}`);
                 const frame = document.getElementById(`frame_${winId}`);
-                let rawUrl = input.value;
+                let raw = input.value;
+                let target = raw.includes('.') && !raw.includes(' ') ? (raw.startsWith('http') ? raw : 'https://' + raw) : `https://www.google.com/search?q=${encodeURIComponent(raw)}&igu=1`;
+                
+                // Obfuscate URL Box
+                input.value = "system_idx_" + btoa(target).substring(0, 12) + "_" + Math.random().toString(36).substring(7) + ".tmp";
+                input.blur();
 
-                // 1. Determine destination
-                let targetUrl = rawUrl;
-                if (!rawUrl.includes('.') || rawUrl.includes(' ')) {
-                    targetUrl = `https://www.google.com/search?q=${encodeURIComponent(rawUrl)}&igu=1`;
-                } else {
-                    if (!targetUrl.startsWith('http')) targetUrl = 'https://' + targetUrl;
-                }
-
-                // 2. Obfuscate the URL box immediately
-                const garbage = this.generateGarbage(targetUrl);
-                input.value = garbage;
-                input.blur(); // Remove focus so user doesn't see real URL
-
-                // 3. Load into iframe (No new tabs)
                 try {
-                    // Using Puter's fetch to bypass some X-Frame-Options
-                    const resp = await puter.net.fetch(targetUrl);
+                    const resp = await puter.net.fetch(target);
                     const blob = await resp.blob();
                     frame.src = URL.createObjectURL(blob);
-                } catch (e) {
-                    frame.src = targetUrl; // Fallback
-                }
+                } catch (e) { frame.src = target; }
+            },
+
+            initBattery() {
+                if (!navigator.getBattery) return;
+                navigator.getBattery().then(bat => {
+                    const update = () => {
+                        const level = Math.round(bat.level * 100);
+                        document.getElementById('bat-level').innerText = level + '%';
+                        const icon = document.getElementById('bat-icon');
+                        icon.innerText = bat.charging ? 'battery_charging_full' : (level < 20 ? 'battery_alert' : 'battery_full');
+                        if(level < 20 && !bat.charging) icon.classList.add('critical'); else icon.classList.remove('critical');
+                    };
+                    update(); bat.onlevelchange = update; bat.onchargingchange = update;
+                });
             },
 
             dragStart(e, id) {
                 const win = document.getElementById(id);
-                let x = e.clientX - win.offsetLeft;
-                let y = e.clientY - win.offsetTop;
+                let x = e.clientX - win.offsetLeft, y = e.clientY - win.offsetTop;
                 const move = (ev) => { win.style.left = ev.clientX - x + 'px'; win.style.top = ev.clientY - y + 'px'; };
                 document.addEventListener('mousemove', move);
                 document.onmouseup = () => document.removeEventListener('mousemove', move);
+            },
+
+            maximize(id) {
+                const w = document.getElementById(id);
+                if(w.style.width === '100%') { w.style.width='800px'; w.style.height='500px'; }
+                else { w.style.width='100%'; w.style.height='calc(100vh - 48px)'; w.style.top='0'; w.style.left='0'; }
             }
         };
     </script>
