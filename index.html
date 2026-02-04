@@ -2,129 +2,218 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zenith OS</title>
+    <title>Zenith OS | Ultimate v7</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #000; --accent: #4285F4; --term: #00FF41; --red: #E50914; --win: #0f0f0f; }
-        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; height: 100vh; }
+        :root { --bg: #000; --accent: #4285F4; --term: #00FF41; --red: #E50914; --win: #0a0a0a; }
+        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; height: 100vh; transition: 0.5s; }
         
-        /* 1. THE HIDDEN DOCK (Everything is here) */
-        #dock-container { position: absolute; bottom: 0; width: 100%; height: 80px; display: flex; justify-content: center; align-items: flex-end; z-index: 1000; }
-        #dock { 
-            background: rgba(20,20,20,0.8); backdrop-filter: blur(15px); 
-            padding: 10px 25px; border-radius: 20px 20px 0 0; border: 1px solid #333; 
-            display: flex; gap: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
-        #dock-container:hover #dock { transform: translateY(0); }
-        .dock-icon { cursor: pointer; transition: 0.2s; font-size: 32px; color: #666; position: relative; }
-        .dock-icon:hover { color: var(--accent); transform: scale(1.3) translateY(-5px); }
-        .dock-icon span { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 900; color: #444; opacity: 0; }
-        .dock-icon:hover span { opacity: 1; }
+        /* Themes */
+        body.theme-neon { background: radial-gradient(circle, #001233 0%, #000 100%); --accent: #00f2ff; }
+        body.theme-sea { background: radial-gradient(circle, #001a1a 0%, #000 100%); --accent: #20ffbc; }
 
-        /* 2. WINDOW SYSTEM */
-        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #222; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,1); z-index: 10; }
+        /* Desktop & Dock */
+        #desktop { padding: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 30px; height: calc(100vh - 60px); }
+        #dock { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(20,20,20,0.8); backdrop-filter: blur(15px); padding: 10px 20px; border-radius: 20px; border: 1px solid #333; display: flex; gap: 20px; opacity: 0; transition: 0.3s; z-index: 1000; }
+        #dock:hover { opacity: 1; transform: translateX(-50%) translateY(0); }
+        
+        .icon { width: 90px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; transition: 0.2s; }
+        .icon:hover { transform: translateY(-5px); filter: drop-shadow(0 0 8px var(--accent)); }
+        .icon i { font-size: 48px; color: #333; margin-bottom: 8px; }
+        .icon span { font-size: 9px; font-weight: 900; letter-spacing: 0.5px; color: #777; }
+        .icon.drive-show i { color: var(--red); }
+
+        /* Windowing */
+        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #222; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,1); z-index: 10; }
         .win-bar { height: 40px; background: #000; display: flex; align-items: center; padding: 0 15px; cursor: move; }
-        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #444; }
+        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; letter-spacing: 1.5px; color: #444; }
         
-        /* 3. TASKBAR (Fixed Utility) */
-        #taskbar { position: absolute; top: 0; width: 100%; height: 45px; background: rgba(0,0,0,0.8); border-bottom: 1px solid #111; display: flex; align-items: center; padding: 0 20px; z-index: 2000; }
-        #q-search { background: #111; border: 1px solid #222; border-radius: 5px; color: white; padding: 5px 12px; font-size: 11px; width: 250px; outline: none; transition: 0.3s; }
-        #q-search:focus { width: 350px; border-color: var(--accent); }
-        #clock { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #444; letter-spacing: 1px; }
+        /* Browser Tabs */
+        .tab-bar { display: flex; background: #050505; gap: 2px; }
+        .tab { padding: 8px 15px; font-size: 10px; cursor: pointer; background: #111; color: #555; }
+        .tab.active { background: var(--win); color: var(--accent); }
 
-        /* PANIC OVERLAY */
+        /* Admin UI */
+        .admin-body { flex-grow: 1; background: #020202; padding: 20px; font-family: 'JetBrains Mono'; color: var(--term); overflow-y: auto; }
+        .admin-input { background: #111; border: 1px solid #222; color: var(--term); padding: 8px; width: 85%; margin-top: 5px; outline: none; }
+        .show-list-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #111; font-size: 11px; }
+
+        /* Taskbar */
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 50px; background: #050505; border-top: 1px solid #111; display: flex; align-items: center; padding: 0 20px; z-index: 2000; }
+        #q-search { background: #111; border: 1px solid #222; border-radius: 5px; color: white; padding: 5px 10px; font-size: 11px; width: 200px; margin-left: 20px; outline: none; }
+        #clock { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 11px; color: #444; }
         #panic { position: fixed; inset: 0; background: white; z-index: 99999; display: none; }
     </style>
 </head>
-<body onload="OS.init()">
+<body onload="initOS()">
 
     <div id="panic"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
 
-    <div id="taskbar">
-        <span style="font-size:10px; font-weight:900; letter-spacing:3px; color: var(--accent);">ZENITH_CORE</span>
-        <input type="text" id="q-search" placeholder="QUICK SEARCH / BROWSE..." onkeypress="if(event.key==='Enter') OS.quickNav()">
-        <div id="clock">00:00:00</div>
-    </div>
-
-    <div id="dock-container">
-        <div id="dock">
-            <i class="material-icons-round dock-icon" onclick="OS.open('web-win')">language<span>BROWSER</span></i>
-            <i class="material-icons-round dock-icon" onclick="OS.openShow('JJK Archive', '1eqNcKK02wEdRV7RnfrmDRZf2s2QZHUyj')" style="color:var(--red)">play_circle<span>CINEMA</span></i>
-            <i class="material-icons-round dock-icon" onclick="OS.open('admin-win')">security<span>ADMIN</span></i>
+    <div id="desktop">
         </div>
+
+    <div id="dock">
+        <i class="material-icons-round" onclick="openWin('web-win')" style="color:#34a853; cursor:pointer;">language</i>
+        <i class="material-icons-round" onclick="openWin('admin-win')" style="color:var(--accent); cursor:pointer;">terminal</i>
     </div>
 
-    <div id="web-win" class="window" style="width: 1100px; height: 700px; top: 80px; left: 100px;">
-        <div class="win-bar" onmousedown="OS.drag(event, 'web-win')">
-            <div class="win-title">ENCRYPTED_WEB_NODE</div>
-            <i class="material-icons-round" style="cursor:pointer; font-size:18px; color:#555;" onclick="OS.close('web-win')">close</i>
+    <div id="web-win" class="window" style="width: 1000px; height: 650px; top: 50px; left: 100px;">
+        <div class="win-bar" onmousedown="focusWin('web-win');dragWin(event, 'web-win')" ondblclick="snapWin('web-win')">
+            <div class="win-title">WEB_NODE</div>
+            <i class="material-icons-round" onclick="closeWin('web-win')" style="cursor:pointer; font-size:18px;">close</i>
+        </div>
+        <div class="tab-bar">
+            <div id="t1" class="tab active" onclick="switchTab(1)">GOOGLE</div>
+            <div id="t2" class="tab" onclick="switchTab(2)">BING</div>
         </div>
         <iframe id="web-frame" src="https://www.google.com/search?igu=1" style="flex-grow:1; border:none; background:#fff;"></iframe>
     </div>
 
-    <div id="admin-win" class="window" style="width: 450px; height: 500px; top: 120px; left: 350px;">
-        <div class="win-bar" onmousedown="OS.drag(event, 'admin-win')">
-            <div class="win-title">SYSTEM_AUTH</div>
-            <i class="material-icons-round" style="cursor:pointer; font-size:18px; color:#555;" onclick="OS.close('admin-win')">close</i>
+    <div id="cinema-win" class="window" style="width: 1100px; height: 700px; top: 30px; left: 80px;">
+        <div class="win-bar" onmousedown="focusWin('cinema-win');dragWin(event, 'cinema-win')" ondblclick="snapWin('cinema-win')">
+            <div class="win-title" id="c-label">CINEMA_PLAYER</div>
+            <i class="material-icons-round" onclick="closeWin('cinema-win')" style="cursor:pointer; font-size:18px;">close</i>
         </div>
-        <div style="padding: 30px; font-family: 'JetBrains Mono'; color: var(--term);">
-            <div id="a-login">
-                <div>> ENTER_ID:</div>
-                <input type="text" id="u-in" style="background:transparent; border:none; color:var(--term); outline:none; font-family:inherit; font-size:16px;">
-                <div id="p-prompt" style="display:none; margin-top:20px;">> ACCESS_KEY:</div>
-                <input type="password" id="p-in" style="display:none; background:transparent; border:none; color:var(--term); outline:none; font-family:inherit; font-size:16px;">
+        <iframe id="c-frame" src="" style="flex-grow:1; border:none; background:#000;"></iframe>
+    </div>
+
+    <div id="admin-win" class="window" style="width: 420px; height: 550px; top: 100px; left: 350px;">
+        <div class="win-bar" onmousedown="focusWin('admin-win');dragWin(event, 'admin-win')">
+            <div class="win-title">SYSTEM_AUTH</div>
+            <i class="material-icons-round" onclick="closeWin('admin-win')" style="cursor:pointer; font-size:18px;">close</i>
+        </div>
+        <div id="a-login" class="admin-body">
+            <div>> PASSKEY_REQUIRED (Ck0):</div>
+            <input type="password" id="u-in" class="admin-input">
+        </div>
+        <div id="a-panel" class="admin-body" style="display:none;">
+            <div>> THEME_ENGINE:</div>
+            <div style="display:flex; gap:10px; margin: 10px 0;">
+                <button onclick="document.body.className=''" style="cursor:pointer">STEALTH</button>
+                <button onclick="document.body.className='theme-neon'" style="cursor:pointer">NEON</button>
+                <button onclick="document.body.className='theme-sea'" style="cursor:pointer">SEA</button>
             </div>
-            <div id="a-panel" style="display:none;">
-                <p>> STATUS: ROOT_VERIFIED</p>
-                <button onclick="OS.stealthMode()" style="background:var(--red); color:white; border:none; padding:10px; width:100%; cursor:pointer; font-weight:900;">LAUNCH CLOAKED TAB</button>
-                <div style="margin-top:20px;">
-                    <label style="font-size:10px; color:#555;">INJECT DATA:</label>
-                    <input type="text" id="s-name" placeholder="Name" style="width:100%; background:#111; border:1px solid #333; color:white; margin:5px 0;">
-                    <input type="text" id="s-id" placeholder="Folder ID / URL" style="width:100%; background:#111; border:1px solid #333; color:white; margin:5px 0;">
-                    <button onclick="OS.saveItem()" style="width:100%; background:var(--accent); border:none; padding:8px; cursor:pointer;">SAVE TO SYSTEM</button>
-                </div>
+            <div style="border-top: 1px solid #222; padding-top:10px;">
+                <div>> DRIVE_INJECTOR:</div>
+                <input type="text" id="s-id" class="admin-input" placeholder="Folder ID">
+                <button onclick="verifyFolder()" style="margin-top:5px; cursor:pointer">VERIFY & FETCH NAME</button>
+                <input type="text" id="s-name" class="admin-input" placeholder="Name">
+                <button onclick="window.saveShow()" style="background:var(--term); color:black; border:none; width:90%; padding:10px; margin-top:10px; font-weight:bold; cursor:pointer">PUSH TO CLOUD</button>
             </div>
+            <div id="cloud-list" style="margin-top:20px; border-top:1px solid #222;"></div>
         </div>
     </div>
 
-    <script>
-        const OS = {
-            init() {
-                setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
-                document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
-                
-                const u = document.getElementById('u-in'), p = document.getElementById('p-in');
-                u.addEventListener('keypress', e => { if(e.key==='Enter' && u.value==="Ck0") { u.style.display='none'; document.getElementById('p-prompt').style.display='block'; p.style.display='block'; p.focus(); }});
-                p.addEventListener('keypress', e => { if(e.key==='Enter' && p.value==="dkdk123") { document.getElementById('a-login').style.display='none'; document.getElementById('a-panel').style.display='block'; }});
-            },
-            open(id) { document.getElementById(id).style.display = 'flex'; },
-            close(id) { document.getElementById(id).style.display = 'none'; },
-            quickNav() {
-                const val = document.getElementById('q-search').value;
-                this.open('web-win');
-                document.getElementById('web-frame').src = val.includes('.') ? 'https://' + val : 'https://www.google.com/search?q=' + val + '&igu=1';
-            },
-            openShow(n, id) {
-                this.open('web-win');
-                document.getElementById('web-frame').src = `https://drive.google.com/embeddedfolderview?id=${id}#grid`;
-            },
-            stealthMode() {
-                const win = window.open('about:blank', '_blank');
-                win.document.write('<html><head><title>Classes</title></head><body style="margin:0;padding:0;">' + document.documentElement.innerHTML + '</body></html>');
-                win.document.close();
-            },
-            saveItem() {
-                alert("Data saved to system cache. (Persistent logic active)");
-            },
-            drag(e, id) {
-                const w = document.getElementById(id);
-                let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
-                const m = ev => { w.style.left = ev.clientX - ox + 'px'; w.style.top = ev.clientY - oy + 'px'; };
-                document.addEventListener('mousemove', m);
-                document.onmouseup = () => document.removeEventListener('mousemove', m);
-            }
+    <div id="taskbar">
+        <span style="font-size:10px; font-weight:900; letter-spacing:3px; color:var(--accent);">ZENITH_v7</span>
+        <input type="text" id="q-search" placeholder="Quick Search / URL..." onkeypress="if(event.key==='Enter') qNav()">
+        <div id="clock">00:00:00</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng",
+            authDomain: "titan-84c56.firebaseapp.com",
+            projectId: "titan-84c56",
+            storageBucket: "titan-84c56.firebasestorage.app",
+            messagingSenderId: "869990600595",
+            appId: "1:869990600595:web:6181d38e40e5102a9ae266",
+            databaseURL: "https://titan-84c56-default-rtdb.firebaseio.com"
         };
+        const DRIVE_KEY = "AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const showsRef = ref(db, 'shows');
+
+        window.saveShow = () => {
+            const n = document.getElementById('s-name').value;
+            const i = document.getElementById('s-id').value;
+            if(n && i) push(showsRef, { name: n, folderId: i });
+        };
+
+        window.verifyFolder = async () => {
+            const id = document.getElementById('s-id').value;
+            const res = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?key=${DRIVE_KEY}`);
+            const data = await res.json();
+            if(data.name) document.getElementById('s-name').value = data.name;
+        };
+
+        onValue(showsRef, (snapshot) => {
+            const data = snapshot.val();
+            document.querySelectorAll('.drive-show').forEach(e => e.remove());
+            document.getElementById('cloud-list').innerHTML = "";
+            if (data) {
+                Object.entries(data).forEach(([key, show]) => {
+                    renderIcon(show.name, show.folderId);
+                    renderAdminItem(show.name, key);
+                });
+            }
+        });
+
+        function renderIcon(n, id) {
+            const d = document.createElement('div');
+            d.className = "icon drive-show";
+            d.onclick = () => {
+                document.getElementById('c-frame').src = `https://drive.google.com/embeddedfolderview?id=${id}#grid`;
+                document.getElementById('c-label').innerText = n.toUpperCase();
+                openWin('cinema-win');
+            };
+            d.innerHTML = `<i class="material-icons-round">play_circle_filled</i><span>${n}</span>`;
+            document.getElementById('desktop').appendChild(d);
+        }
+
+        function renderAdminItem(name, key) {
+            const item = document.createElement('div');
+            item.className = "show-list-item";
+            item.innerHTML = `<span>${name}</span><i class="material-icons-round" style="color:red;cursor:pointer" onclick="delShow('${key}')">delete</i>`;
+            document.getElementById('cloud-list').appendChild(item);
+        }
+
+        window.delShow = (key) => remove(ref(db, `shows/${key}`));
+    </script>
+
+    <script>
+        let z = 100;
+        function initOS() {
+            setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+            document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
+            document.getElementById('u-in').onkeypress = (e) => {
+                if(e.key === 'Enter' && e.target.value === 'Ck0') {
+                    document.getElementById('a-login').style.display = 'none';
+                    document.getElementById('a-panel').style.display = 'block';
+                }
+            };
+        }
+        function openWin(id) { focusWin(id); document.getElementById(id).style.display = 'flex'; }
+        function closeWin(id) { document.getElementById(id).style.display = 'none'; }
+        function focusWin(id) { z++; document.getElementById(id).style.zIndex = z; }
+        function snapWin(id) {
+            const w = document.getElementById(id);
+            if(w.style.width === '100vw') { w.style.width = '1000px'; w.style.height = '650px'; }
+            else { w.style.width = '100vw'; w.style.height = 'calc(100vh - 50px)'; w.style.top = '0'; w.style.left = '0'; }
+        }
+        function switchTab(n) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('t'+n).classList.add('active');
+            document.getElementById('web-frame').src = n === 1 ? "https://www.google.com/search?igu=1" : "https://www.bing.com";
+        }
+        function qNav() {
+            const v = document.getElementById('q-search').value;
+            openWin('web-win');
+            document.getElementById('web-frame').src = v.includes('.') ? 'https://'+v : 'https://www.google.com/search?q='+v+'&igu=1';
+        }
+        function dragWin(e, id) {
+            const w = document.getElementById(id);
+            let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
+            const m = ev => { w.style.left = ev.clientX - ox + 'px'; w.style.top = ev.clientY - oy + 'px'; };
+            document.addEventListener('mousemove', m);
+            document.onmouseup = () => document.removeEventListener('mousemove', m);
+        }
     </script>
 </body>
 </html>
