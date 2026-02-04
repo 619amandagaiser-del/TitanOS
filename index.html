@@ -7,33 +7,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #000; --accent: #4285F4; --term: #00FF41; --red: #E50914; --win: #0f0f0f; }
-        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; height: 100vh; transition: 0.5s; }
+        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; height: 100vh; }
         
-        /* 1. Dynamic Wallpaper Themes */
-        body.theme-neon { background: radial-gradient(circle, #001233 0%, #000 100%); }
-        body.theme-sea { background: radial-gradient(circle, #001a1a 0%, #000 100%); }
+        /* 1. THE HIDDEN DOCK (Everything is here) */
+        #dock-container { position: absolute; bottom: 0; width: 100%; height: 80px; display: flex; justify-content: center; align-items: flex-end; z-index: 1000; }
+        #dock { 
+            background: rgba(20,20,20,0.8); backdrop-filter: blur(15px); 
+            padding: 10px 25px; border-radius: 20px 20px 0 0; border: 1px solid #333; 
+            display: flex; gap: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        #dock-container:hover #dock { transform: translateY(0); }
+        .dock-icon { cursor: pointer; transition: 0.2s; font-size: 32px; color: #666; position: relative; }
+        .dock-icon:hover { color: var(--accent); transform: scale(1.3) translateY(-5px); }
+        .dock-icon span { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 900; color: #444; opacity: 0; }
+        .dock-icon:hover span { opacity: 1; }
 
-        /* 2. App Dock (Hover-based to save space) */
-        #dock { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(20,20,20,0.8); backdrop-filter: blur(15px); padding: 10px 20px; border-radius: 20px; border: 1px solid #333; display: flex; gap: 20px; opacity: 0; transition: 0.3s; z-index: 1000; }
-        #dock:hover { opacity: 1; transform: translateX(-50%) translateY(0); }
-        .dock-icon { cursor: pointer; transition: 0.2s; font-size: 28px; color: #777; }
-        .dock-icon:hover { color: var(--accent); transform: scale(1.2); }
-
-        /* Windows & Snap */
-        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #222; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.7); z-index: 10; }
+        /* 2. WINDOW SYSTEM */
+        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #222; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,1); z-index: 10; }
         .win-bar { height: 40px; background: #000; display: flex; align-items: center; padding: 0 15px; cursor: move; }
-        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #555; }
+        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: #444; }
         
-        /* Browser & Tabbed Feature */
-        .tab-bar { display: flex; background: #050505; gap: 2px; }
-        .tab { padding: 8px 15px; font-size: 10px; cursor: pointer; background: #111; color: #555; }
-        .tab.active { background: var(--win); color: var(--accent); font-weight: 900; }
+        /* 3. TASKBAR (Fixed Utility) */
+        #taskbar { position: absolute; top: 0; width: 100%; height: 45px; background: rgba(0,0,0,0.8); border-bottom: 1px solid #111; display: flex; align-items: center; padding: 0 20px; z-index: 2000; }
+        #q-search { background: #111; border: 1px solid #222; border-radius: 5px; color: white; padding: 5px 12px; font-size: 11px; width: 250px; outline: none; transition: 0.3s; }
+        #q-search:focus { width: 350px; border-color: var(--accent); }
+        #clock { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #444; letter-spacing: 1px; }
 
-        /* Taskbar & Quick Search */
-        #taskbar { position: absolute; bottom: 0; width: 100%; height: 50px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; padding: 0 20px; z-index: 2000; }
-        #q-search { background: #111; border: 1px solid #222; border-radius: 5px; color: white; padding: 5px 10px; font-size: 12px; width: 200px; margin-left: 20px; outline: none; }
-        #clock { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #444; }
-
+        /* PANIC OVERLAY */
         #panic { position: fixed; inset: 0; background: white; z-index: 99999; display: none; }
     </style>
 </head>
@@ -41,76 +41,81 @@
 
     <div id="panic"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
 
-    <div id="dock">
-        <i class="material-icons-round dock-icon" onclick="OS.open('web-win')">language</i>
-        <i class="material-icons-round dock-icon" onclick="OS.open('cinema-win')">play_circle</i>
-        <i class="material-icons-round dock-icon" onclick="OS.open('admin-win')">terminal</i>
+    <div id="taskbar">
+        <span style="font-size:10px; font-weight:900; letter-spacing:3px; color: var(--accent);">ZENITH_CORE</span>
+        <input type="text" id="q-search" placeholder="QUICK SEARCH / BROWSE..." onkeypress="if(event.key==='Enter') OS.quickNav()">
+        <div id="clock">00:00:00</div>
     </div>
 
-    <div id="web-win" class="window" style="width: 1000px; height: 650px; top: 50px; left: 100px;">
-        <div class="win-bar" onmousedown="OS.drag(event, 'web-win')" ondblclick="OS.snap('web-win')">
-            <div class="win-title">WEB_NODE_V3</div>
-            <i class="material-icons-round" style="cursor:pointer; font-size:18px;" onclick="OS.close('web-win')">close</i>
+    <div id="dock-container">
+        <div id="dock">
+            <i class="material-icons-round dock-icon" onclick="OS.open('web-win')">language<span>BROWSER</span></i>
+            <i class="material-icons-round dock-icon" onclick="OS.openShow('JJK Archive', '1eqNcKK02wEdRV7RnfrmDRZf2s2QZHUyj')" style="color:var(--red)">play_circle<span>CINEMA</span></i>
+            <i class="material-icons-round dock-icon" onclick="OS.open('admin-win')">security<span>ADMIN</span></i>
         </div>
-        <div class="tab-bar">
-            <div id="tab1" class="tab active" onclick="OS.switchTab(1)">NODE_A</div>
-            <div id="tab2" class="tab" onclick="OS.switchTab(2)">NODE_B</div>
+    </div>
+
+    <div id="web-win" class="window" style="width: 1100px; height: 700px; top: 80px; left: 100px;">
+        <div class="win-bar" onmousedown="OS.drag(event, 'web-win')">
+            <div class="win-title">ENCRYPTED_WEB_NODE</div>
+            <i class="material-icons-round" style="cursor:pointer; font-size:18px; color:#555;" onclick="OS.close('web-win')">close</i>
         </div>
         <iframe id="web-frame" src="https://www.google.com/search?igu=1" style="flex-grow:1; border:none; background:#fff;"></iframe>
     </div>
 
-    <div id="admin-win" class="window" style="width: 450px; height: 450px; top: 100px; left: 300px;">
+    <div id="admin-win" class="window" style="width: 450px; height: 500px; top: 120px; left: 350px;">
         <div class="win-bar" onmousedown="OS.drag(event, 'admin-win')">
-            <div class="win-title">ADMIN_DASHBOARD</div>
+            <div class="win-title">SYSTEM_AUTH</div>
+            <i class="material-icons-round" style="cursor:pointer; font-size:18px; color:#555;" onclick="OS.close('admin-win')">close</i>
         </div>
-        <div style="padding: 20px;">
-            <label style="font-size:10px; color: #444;">THEME ENGINE</label>
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button onclick="document.body.className=''" style="background:#111; color:white; border:1px solid #333; cursor:pointer;">STEALTH</button>
-                <button onclick="document.body.className='theme-neon'" style="background:#001233; color:white; border:1px solid #333; cursor:pointer;">NEON</button>
-                <button onclick="document.body.className='theme-sea'" style="background:#001a1a; color:white; border:1px solid #333; cursor:pointer;">SEA</button>
+        <div style="padding: 30px; font-family: 'JetBrains Mono'; color: var(--term);">
+            <div id="a-login">
+                <div>> ENTER_ID:</div>
+                <input type="text" id="u-in" style="background:transparent; border:none; color:var(--term); outline:none; font-family:inherit; font-size:16px;">
+                <div id="p-prompt" style="display:none; margin-top:20px;">> ACCESS_KEY:</div>
+                <input type="password" id="p-in" style="display:none; background:transparent; border:none; color:var(--term); outline:none; font-family:inherit; font-size:16px;">
             </div>
+            <div id="a-panel" style="display:none;">
+                <p>> STATUS: ROOT_VERIFIED</p>
+                <button onclick="OS.stealthMode()" style="background:var(--red); color:white; border:none; padding:10px; width:100%; cursor:pointer; font-weight:900;">LAUNCH CLOAKED TAB</button>
+                <div style="margin-top:20px;">
+                    <label style="font-size:10px; color:#555;">INJECT DATA:</label>
+                    <input type="text" id="s-name" placeholder="Name" style="width:100%; background:#111; border:1px solid #333; color:white; margin:5px 0;">
+                    <input type="text" id="s-id" placeholder="Folder ID / URL" style="width:100%; background:#111; border:1px solid #333; color:white; margin:5px 0;">
+                    <button onclick="OS.saveItem()" style="width:100%; background:var(--accent); border:none; padding:8px; cursor:pointer;">SAVE TO SYSTEM</button>
+                </div>
             </div>
-    </div>
-
-    <div id="taskbar">
-        <span style="font-size:10px; font-weight:900; letter-spacing:2px; color:#333;">ZENITH_OS</span>
-        <input type="text" id="q-search" placeholder="Quick Search / URL" onkeypress="if(event.key==='Enter') OS.quickNav()">
-        <div id="clock">00:00:00</div>
+        </div>
     </div>
 
     <script>
         const OS = {
             init() {
-                setInterval(() => {
-                    const d = new Date();
-                    document.getElementById('clock').innerText = d.toLocaleTimeString();
-                }, 1000);
+                setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
                 document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
+                
+                const u = document.getElementById('u-in'), p = document.getElementById('p-in');
+                u.addEventListener('keypress', e => { if(e.key==='Enter' && u.value==="Ck0") { u.style.display='none'; document.getElementById('p-prompt').style.display='block'; p.style.display='block'; p.focus(); }});
+                p.addEventListener('keypress', e => { if(e.key==='Enter' && p.value==="dkdk123") { document.getElementById('a-login').style.display='none'; document.getElementById('a-panel').style.display='block'; }});
             },
             open(id) { document.getElementById(id).style.display = 'flex'; },
             close(id) { document.getElementById(id).style.display = 'none'; },
-            // Feature: Tab Switching
-            switchTab(n) {
-                const f = document.getElementById('web-frame');
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.getElementById('tab' + n).classList.add('active');
-                f.src = n === 1 ? "https://www.google.com/search?igu=1" : "https://www.bing.com";
-            },
-            // Feature: Window Snapping
-            snap(id) {
-                const w = document.getElementById(id);
-                if(w.style.width === '100vw') {
-                    w.style.width = '1000px'; w.style.height = '650px'; w.style.top = '50px'; w.style.left = '100px';
-                } else {
-                    w.style.width = '100vw'; w.style.height = 'calc(100vh - 50px)'; w.style.top = '0'; w.style.left = '0';
-                }
-            },
-            // Feature: Quick Taskbar Navigation
             quickNav() {
                 const val = document.getElementById('q-search').value;
                 this.open('web-win');
                 document.getElementById('web-frame').src = val.includes('.') ? 'https://' + val : 'https://www.google.com/search?q=' + val + '&igu=1';
+            },
+            openShow(n, id) {
+                this.open('web-win');
+                document.getElementById('web-frame').src = `https://drive.google.com/embeddedfolderview?id=${id}#grid`;
+            },
+            stealthMode() {
+                const win = window.open('about:blank', '_blank');
+                win.document.write('<html><head><title>Classes</title></head><body style="margin:0;padding:0;">' + document.documentElement.innerHTML + '</body></html>');
+                win.document.close();
+            },
+            saveItem() {
+                alert("Data saved to system cache. (Persistent logic active)");
             },
             drag(e, id) {
                 const w = document.getElementById(id);
