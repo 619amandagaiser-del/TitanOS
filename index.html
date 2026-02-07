@@ -9,76 +9,96 @@
     <title>Zenith OS</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        :root { --bg: #000; --accent: #4285F4; --term: #00FF41; --red: #E50914; --win: #0f0f0f; }
-        body { margin: 0; background: var(--bg); font-family: sans-serif; color: white; overflow: hidden; height: 100vh; }
+        :root { --bg: #000; --accent: #5865F2; --term: #23a559; --win: #111; --sidebar: #1e1f22; --chat: #313338; }
+        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; overflow: hidden; height: 100vh; }
         
-        /* DESKTOP LAYOUT */
-        #desktop { padding: 50px; display: flex; flex-wrap: wrap; gap: 40px; align-content: flex-start; height: calc(100vh - 50px); z-index: 1; }
-        .icon { width: 90px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; }
-        .icon i { font-size: 50px; color: #444; margin-bottom: 10px; }
-        .icon span { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        /* Desktop */
+        #desktop { padding: 40px; display: flex; flex-wrap: wrap; gap: 30px; }
+        .icon { width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; }
+        .icon i { font-size: 45px; color: #555; margin-bottom: 5px; }
+        .icon span { font-size: 10px; font-weight: bold; text-transform: uppercase; }
 
-        /* WINDOWS */
-        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #222; display: none; flex-direction: column; overflow: hidden; z-index: 10; min-width: 300px; }
-        .win-bar { height: 40px; background: #000; display: flex; align-items: center; padding: 0 15px; cursor: move; }
-        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; color: #555; }
-        .win-content { flex-grow: 1; display: flex; flex-direction: column; background: #000; }
+        /* Window */
+        .window { position: absolute; background: var(--win); border-radius: 12px; display: none; flex-direction: column; overflow: hidden; z-index: 10; border: 1px solid #222; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .win-bar { height: 35px; background: #000; display: flex; align-items: center; padding: 0 12px; cursor: move; }
+        .win-title { flex-grow: 1; font-size: 11px; font-weight: 900; color: #666; }
 
-        /* UI ELEMENTS */
-        .nav-bar { height: 45px; background: #111; display: flex; align-items: center; padding: 0 10px; gap: 10px; border-bottom: 1px solid #222; }
-        .nav-input { flex-grow: 1; background: #000; border: 1px solid #333; color: white; padding: 6px 15px; border-radius: 20px; font-size: 12px; }
-        #panic { position: fixed; inset: 0; background: white; z-index: 99999; display: none; }
-        iframe { border: none; width: 100%; height: 100%; }
+        /* Discord Layout */
+        #discord-ui { display: flex; height: 100%; background: var(--chat); }
+        .d-sidebar { width: 70px; background: #1e1f22; display: flex; flex-direction: column; align-items: center; padding-top: 15px; gap: 10px; }
+        .d-channels { width: 220px; background: #2b2d31; display: flex; flex-direction: column; padding: 10px; border-right: 1px solid #222; }
+        .d-chat { flex-grow: 1; display: flex; flex-direction: column; }
         
-        /* ADMIN PANEL SPECIFICS */
-        .admin-box { padding: 20px; color: var(--term); font-family: monospace; }
-        .admin-btn { background: var(--term); color: black; border: none; padding: 10px; width: 100%; margin-top: 10px; font-weight: bold; cursor: pointer; }
+        .ch-header { font-weight: bold; font-size: 11px; color: #949ba4; margin: 15px 0 5px 5px; text-transform: uppercase; }
+        .ch-item { padding: 8px; border-radius: 4px; font-size: 14px; color: #949ba4; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .ch-item:hover { background: #35373c; color: #dbdee1; }
+        .ch-item i { font-size: 18px; }
+        .ch-item.active-voice { color: var(--term); background: rgba(35, 165, 89, 0.1); }
+
+        .msg-area { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { display: flex; gap: 15px; }
+        .msg-img { width: 40px; height: 40px; background: var(--accent); border-radius: 50%; }
+        .msg-user { font-weight: bold; font-size: 14px; }
+        .msg-text { font-size: 14px; color: #dbdee1; }
+
+        .chat-input-wrap { padding: 20px; }
+        .chat-input { width: 100%; background: #383a40; border: none; padding: 12px; border-radius: 8px; color: white; outline: none; }
+
+        /* Call Status Bar */
+        #call-control { height: 50px; background: #232428; display: none; align-items: center; padding: 0 15px; border-top: 1px solid #222; gap: 15px; }
+        .call-info { flex-grow: 1; font-size: 12px; }
+        .call-btn { cursor: pointer; color: #ed4245; }
+        #panic { position: fixed; inset: 0; background: white; z-index: 9999; display: none; }
     </style>
 </head>
 <body onload="OS.init()">
 
-    <div id="panic"><iframe src="https://classroom.google.com"></iframe></div>
+    <div id="panic"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
 
     <div id="desktop">
-        <div class="icon" onclick="OS.open('web-win')">
-            <i class="material-icons-round" style="color:#34a853;">language</i>
-            <span>WEB NODE</span>
-        </div>
-        </div>
-
-    <div id="web-win" class="window" style="width: 80%; height: 70%; top: 10%; left: 10%;">
-        <div class="win-bar" onmousedown="OS.drag(event, 'web-win')">
-            <div class="win-title">TITAN_BROWSER</div>
-            <i class="material-icons-round" style="cursor:pointer;" onclick="OS.close('web-win')">close</i>
-        </div>
-        <div class="nav-bar">
-            <input type="text" id="web-url" class="nav-input" placeholder="Enter URL..." onkeypress="if(event.key==='Enter') OS.navigate()">
-        </div>
-        <div class="win-content">
-            <iframe id="web-frame" src="about:blank"></iframe>
+        <div class="icon" onclick="OS.open('discord-win')">
+            <i class="material-icons-round" style="color:var(--accent)">discord</i>
+            <span>Discord</span>
         </div>
     </div>
 
-    <div id="admin-win" class="window" style="width: 400px; height: 500px; top: 15%; left: 30%;">
-        <div class="win-bar" onmousedown="OS.drag(event, 'admin-win')">
-            <div class="win-title">ROOT_CONSOLE</div>
-            <i class="material-icons-round" style="cursor:pointer;" onclick="OS.close('admin-win')">close</i>
+    <div id="discord-win" class="window" style="width: 1000px; height: 650px; top: 50px; left: 100px;">
+        <div class="win-bar" onmousedown="OS.drag(event, 'discord-win')">
+            <div class="win-title">TITAN_DISCORD_V2</div>
+            <i class="material-icons-round" style="cursor:pointer; font-size:16px;" onclick="OS.close('discord-win')">close</i>
         </div>
-        <div class="admin-box">
-            <label>SHOW NAME:</label><br>
-            <input type="text" id="s-name" style="width:90%;"><br><br>
-            <label>DRIVE FOLDER ID:</label><br>
-            <input type="text" id="s-id" style="width:90%;"><br>
-            <button class="admin-btn" onclick="OS.saveShow()">INJECT SHOW</button>
-            <hr style="border-color:#222; margin:20px 0;">
-            <button class="admin-btn" style="background:red; color:white;" onclick="OS.startCall()">INIT VOICE BRIDGE</button>
+        <div id="discord-ui">
+            <div class="d-sidebar">
+                <div style="width:48px; height:48px; background:var(--accent); border-radius:15px; display:flex; align-items:center; justify-content:center;"><i class="material-icons-round">hub</i></div>
+            </div>
+            <div class="d-channels">
+                <div class="ch-header">Text Channels</div>
+                <div class="ch-item"><i class="material-icons-round">tag</i> general</div>
+                
+                <div class="ch-header">Voice Channels</div>
+                <div class="ch-item" id="voice-ch" onclick="OS.toggleVoice()"><i class="material-icons-round">volume_up</i> General Voice</div>
+                
+                <div style="flex-grow: 1;"></div>
+                <div id="call-control">
+                    <div class="call-info">
+                        <div style="color:var(--term); font-weight:bold;">Voice Connected</div>
+                        <div style="font-size:10px; color:#949ba4;">General / Titan Bridge</div>
+                    </div>
+                    <i class="material-icons-round call-btn" onclick="OS.toggleVoice()">call_end</i>
+                </div>
+            </div>
+            <div class="d-chat">
+                <div class="msg-area" id="chat-messages"></div>
+                <div class="chat-input-wrap">
+                    <input type="text" id="chat-box" class="chat-input" placeholder="Message #general" onkeypress="if(event.key==='Enter') OS.sendMsg()">
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
-        // Import Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng",
@@ -86,62 +106,58 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const showsRef = ref(db, 'shows');
-
-        let secretBuffer = "";
+        
+        let localStream, isCalling = false;
 
         window.OS = {
             init() {
-                console.log("OS_KERNEL: Booting...");
-                
-                // 1. GHOST LISTENER
-                document.addEventListener('keydown', e => {
-                    if(e.key === '`') document.getElementById('panic').style.display = 'block';
-                    
-                    secretBuffer += e.key;
-                    if (secretBuffer.endsWith("Ck04242014")) { this.open('admin-win'); secretBuffer = ""; }
-                    if (secretBuffer.length > 20) secretBuffer = "";
-                });
+                document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
 
-                // 2. FIREBASE SYNC (This pulls your shows)
-                onValue(showsRef, (snap) => {
-                    const data = snap.val();
-                    // Remove old dynamic icons
-                    document.querySelectorAll('.dynamic-show').forEach(e => e.remove());
-                    
-                    if (data) {
-                        Object.entries(data).forEach(([key, s]) => {
-                            const d = document.createElement('div');
-                            d.className = "icon dynamic-show";
-                            d.onclick = () => {
-                                document.getElementById('web-frame').src = `https://drive.google.com/embeddedfolderview?id=${s.folderId}#grid`;
-                                this.open('web-win');
-                            };
-                            d.innerHTML = `<i class="material-icons-round" style="color:var(--red)">play_circle_filled</i><span>${s.name}</span>`;
-                            document.getElementById('desktop').appendChild(d);
+                // Sync Messages
+                onValue(ref(db, 'messages'), (snap) => {
+                    const container = document.getElementById('chat-messages');
+                    container.innerHTML = "";
+                    if(snap.val()) {
+                        Object.values(snap.val()).forEach(m => {
+                            const div = document.createElement('div');
+                            div.className = "msg";
+                            div.innerHTML = `<div class="msg-img"></div><div class="msg-content"><span class="msg-user">${m.user}</span><span class="msg-text">${m.text}</span></div>`;
+                            container.appendChild(div);
                         });
+                        container.scrollTop = container.scrollHeight;
                     }
                 });
             },
 
-            navigate() {
-                let url = document.getElementById('web-url').value;
-                if(!url.startsWith('http')) url = 'https://' + url;
-                document.getElementById('web-frame').src = url;
+            async toggleVoice() {
+                const bar = document.getElementById('call-control');
+                const ch = document.getElementById('voice-ch');
+                if(!isCalling) {
+                    try {
+                        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        isCalling = true;
+                        bar.style.display = "flex";
+                        ch.classList.add('active-voice');
+                        // Optional: Push to Firebase to show your friend you are "In Voice"
+                    } catch(e) { alert("Mic required for Voice Bridge."); }
+                } else {
+                    localStream.getTracks().forEach(t => t.stop());
+                    isCalling = false;
+                    bar.style.display = "none";
+                    ch.classList.remove('active-voice');
+                }
             },
 
-            saveShow() {
-                const n = document.getElementById('s-name').value;
-                const i = document.getElementById('s-id').value;
-                if(n && i) {
-                    push(showsRef, { name: n, folderId: i });
-                    alert("INJECTED TO CLOUD");
+            sendMsg() {
+                const box = document.getElementById('chat-box');
+                if(box.value.trim()) {
+                    push(ref(db, 'messages'), { text: box.value, user: "Zenith_User", timestamp: serverTimestamp() });
+                    box.value = "";
                 }
             },
 
             open(id) { document.getElementById(id).style.display = 'flex'; },
             close(id) { document.getElementById(id).style.display = 'none'; },
-            
             drag(e, id) {
                 const w = document.getElementById(id);
                 let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
