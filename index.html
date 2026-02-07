@@ -2,189 +2,185 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zenith OS | Sidebar v8</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Zenith">
+    <title>Zenith OS</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #050505; --accent: #4285F4; --term: #00FF41; --red: #E50914; --sidebar: #0a0a0a; --win: #111; }
-        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; height: 100vh; display: flex; }
-        
-        /* Sidebar Styles */
-        #sidebar { width: 70px; background: var(--sidebar); border-right: 1px solid #222; display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 25px; z-index: 2000; }
-        .side-icon { cursor: pointer; color: #444; transition: 0.3s; }
-        .side-icon:hover { color: var(--accent); transform: scale(1.1); }
-        .side-icon.active { color: var(--accent); }
-
-        /* Main Workspace */
-        #workspace { flex-grow: 1; position: relative; overflow: hidden; }
-        #desktop { padding: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 30px; }
-        
+        :root { --bg: #000; --accent: #4285F4; --term: #00FF41; --red: #E50914; --win: #0f0f0f; }
+        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: white; overflow: hidden; height: 100vh; }
+        #desktop { padding: 50px; display: flex; flex-wrap: wrap; gap: 40px; align-content: flex-start; height: calc(100vh - 50px); }
         .icon { width: 90px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; transition: 0.2s; }
-        .icon:hover { transform: translateY(-5px); filter: drop-shadow(0 0 8px var(--accent)); }
-        .icon i { font-size: 48px; color: var(--red); margin-bottom: 8px; }
-        .icon span { font-size: 9px; font-weight: 900; color: #777; text-transform: uppercase; }
-
-        /* Windows */
-        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #333; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.8); z-index: 10; }
+        .icon:hover { transform: translateY(-5px); }
+        .icon i { font-size: 50px; color: #444; margin-bottom: 10px; }
+        .icon span { font-size: 10px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
+        .window { position: absolute; background: var(--win); border-radius: 12px; border: 1px solid #222; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,1); z-index: 10; }
         .win-bar { height: 40px; background: #000; display: flex; align-items: center; padding: 0 15px; cursor: move; }
-        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; color: #555; letter-spacing: 1px; }
-
-        /* Admin UI */
-        .admin-body { flex-grow: 1; background: #020202; padding: 20px; font-family: 'JetBrains Mono'; color: var(--term); overflow-y: auto; }
-        .admin-input { background: #111; border: 1px solid #222; color: var(--term); padding: 8px; width: 85%; margin-top: 5px; outline: none; }
-        .inject-btn { background: var(--term); color: black; border: none; width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; }
-
-        /* Taskbar */
-        #taskbar { position: absolute; bottom: 0; left: 70px; right: 0; height: 45px; background: #000; border-top: 1px solid #222; display: flex; align-items: center; padding: 0 20px; z-index: 1000; }
-        #q-search { background: #111; border: 1px solid #333; color: white; padding: 5px 15px; border-radius: 20px; width: 250px; outline: none; font-size: 12px; }
-        #clock { margin-left: auto; font-family: 'JetBrains Mono'; font-size: 11px; color: #555; }
-
+        .win-title { flex-grow: 1; font-size: 10px; font-weight: 900; color: #555; }
+        .nav-bar { height: 45px; background: #111; display: flex; align-items: center; padding: 0 10px; gap: 10px; border-bottom: 1px solid #222; }
+        .nav-input { flex-grow: 1; background: #000; border: 1px solid #333; color: white; padding: 6px 15px; border-radius: 20px; font-size: 12px; outline: none; }
+        .term-body { flex-grow: 1; background: #020202; padding: 25px; font-family: 'JetBrains Mono', monospace; color: var(--term); overflow-y: auto; }
+        .admin-btn { background: var(--term); color: black; border: none; padding: 10px; cursor: pointer; font-weight: 900; border-radius: 4px; width: 100%; margin-top: 10px; }
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 50px; background: #050505; border-top: 1px solid #111; display: flex; align-items: center; padding: 0 25px; }
         #panic { position: fixed; inset: 0; background: white; z-index: 99999; display: none; }
+        input[type="text"] { background: #111; color: white; border: 1px solid #333; padding: 8px; margin: 5px 0; border-radius: 4px; width: 95%; }
     </style>
 </head>
-<body onload="initOS()">
+<body onload="OS.init()">
 
     <div id="panic"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
 
-    <div id="sidebar">
-        <i class="material-icons-round side-icon" onclick="openWin('admin-win')" title="Admin">terminal</i>
-        <i class="material-icons-round side-icon" onclick="openWin('web-win')" title="Browser">language</i>
-        <i class="material-icons-round side-icon" onclick="location.reload()" title="Refresh">refresh</i>
-        <i class="material-icons-round side-icon" style="margin-top:auto; margin-bottom:20px; color:var(--red);" onclick="document.getElementById('panic').style.display='block'" title="Panic">power_settings_new</i>
+    <div id="desktop">
+        <div class="icon" onclick="OS.open('web-win')">
+            <i class="material-icons-round" style="color:#34a853;">language</i>
+            <span>WEB NODE</span>
+        </div>
     </div>
 
-    <div id="workspace">
-        <div id="desktop">
-            </div>
-
-        <div id="cinema-win" class="window" style="width: 1000px; height: 600px; top: 50px; left: 50px;">
-            <div class="win-bar" onmousedown="focusWin('cinema-win');dragWin(event, 'cinema-win')">
-                <div class="win-title" id="c-label">ZENITH_CINEMA</div>
-                <i class="material-icons-round" onclick="closeWin('cinema-win')" style="cursor:pointer; font-size:18px;">close</i>
-            </div>
-            <iframe id="c-frame" src="" style="flex-grow:1; border:none; background:#000;"></iframe>
+    <div id="web-win" class="window" style="width: 1000px; height: 650px; top: 60px; left: 120px;">
+        <div class="win-bar" onmousedown="OS.drag(event, 'web-win')">
+            <div class="win-title">TITAN_VIRTUAL_ENV</div>
+            <i class="material-icons-round" style="cursor:pointer;" onclick="OS.close('web-win')">close</i>
         </div>
-
-        <div id="web-win" class="window" style="width: 900px; height: 600px; top: 80px; left: 100px;">
-            <div class="win-bar" onmousedown="focusWin('web-win');dragWin(event, 'web-win')">
-                <div class="win-title">SECURE_BROWSER</div>
-                <i class="material-icons-round" onclick="closeWin('web-win')" style="cursor:pointer; font-size:18px;">close</i>
-            </div>
-            <iframe id="web-frame" src="https://www.google.com/search?igu=1" style="flex-grow:1; border:none;"></iframe>
+        <div class="nav-bar">
+            <input type="text" id="web-url" class="nav-input" placeholder="Type URL..." onkeypress="if(event.key==='Enter') OS.navigate()">
+            <button onclick="OS.navigate()" style="background:var(--accent); border:none; color:white; padding:5px 15px; border-radius:15px;">GO</button>
         </div>
+        <div id="titan-viewport" style="display:none; flex-grow:1; background:#fff; overflow:auto;"></div>
+        <iframe id="web-frame" src="https://www.google.com/search?igu=1" style="flex-grow:1; border:none; background:#fff;"></iframe>
+    </div>
 
-        <div id="admin-win" class="window" style="width: 400px; height: 500px; top: 120px; left: 150px;">
-            <div class="win-bar" onmousedown="focusWin('admin-win');dragWin(event, 'admin-win')">
-                <div class="win-title">SYSTEM_CORE</div>
-                <i class="material-icons-round" onclick="closeWin('admin-win')" style="cursor:pointer; font-size:18px;">close</i>
-            </div>
-            <div id="a-login" class="admin-body">
-                <div>> AUTH_KEY: (Ck0)</div>
-                <input type="password" id="u-in" class="admin-input">
-            </div>
-            <div id="a-panel" class="admin-body" style="display:none;">
-                <div>> CLOUD_INJECTOR:</div>
-                <input type="text" id="s-id" class="admin-input" placeholder="Google Drive Folder ID">
-                <button onclick="verifyFolder()" style="margin-top:10px; cursor:pointer;">VERIFY ID</button>
-                <input type="text" id="s-name" class="admin-input" placeholder="Show Name">
-                <button class="inject-btn" onclick="saveShow()">PUSH TO FIREBASE</button>
-                <div id="cloud-list" style="margin-top:20px; border-top:1px solid #333;"></div>
-            </div>
+    <div id="admin-win" class="window" style="width: 450px; height: 550px; top: 100px; left: 350px;">
+        <div class="win-bar" onmousedown="OS.drag(event, 'admin-win')">
+            <div class="win-title" style="color:var(--term)">ROOT_ACCESS</div>
+            <i class="material-icons-round" style="cursor:pointer;" onclick="OS.close('admin-win')">close</i>
         </div>
+        <div class="term-body">
+            <button class="admin-btn" style="background:var(--red); color:white;" onclick="OS.stealthMode()">CLOAK OS TAB</button>
+            <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+            <label style="color:var(--term); font-size:10px;">INJECT CLOUD SHOW</label>
+            <input type="text" id="s-name" placeholder="Show Name">
+            <input type="text" id="s-id" placeholder="Drive ID">
+            <button class="admin-btn" onclick="OS.saveShow()">INJECT</button>
+        </div>
+    </div>
 
-        <div id="taskbar">
-            <input type="text" id="q-search" placeholder="Search Google..." onkeypress="if(event.key==='Enter') qNav()">
-            <div id="clock">00:00:00</div>
-        </div>
+    <div id="taskbar">
+        <span style="font-size:10px; font-weight:900; letter-spacing:3px; color:#222;">ZENITH_TITAN_V12</span>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng",
-            authDomain: "titan-84c56.firebaseapp.com",
-            projectId: "titan-84c56",
-            storageBucket: "titan-84c56.firebasestorage.app",
-            messagingSenderId: "869990600595",
-            appId: "1:869990600595:web:6181d38e40e5102a9ae266",
             databaseURL: "https://titan-84c56-default-rtdb.firebaseio.com"
         };
-        const DRIVE_KEY = "AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng";
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const showsRef = ref(db, 'shows');
+        const callRef = ref(db, 'calls/v12');
 
-        window.saveShow = () => {
-            const n = document.getElementById('s-name').value;
-            const i = document.getElementById('s-id').value;
-            if(n && i) push(showsRef, { name: n, folderId: i });
-        };
+        let secretBuffer = "";
+        let localStream, peerConnection;
 
-        window.verifyFolder = async () => {
-            const id = document.getElementById('s-id').value;
-            const res = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?key=${DRIVE_KEY}`);
-            const data = await res.json();
-            if(data.name) document.getElementById('s-name').value = data.name;
-        };
-
-        onValue(showsRef, (snapshot) => {
-            const data = snapshot.val();
-            document.querySelectorAll('.drive-show').forEach(e => e.remove());
-            document.getElementById('cloud-list').innerHTML = "";
-            if (data) {
-                Object.entries(data).forEach(([key, show]) => {
-                    const d = document.createElement('div');
-                    d.className = "icon drive-show";
-                    d.onclick = () => {
-                        document.getElementById('c-frame').src = `https://drive.google.com/embeddedfolderview?id=${show.folderId}#grid`;
-                        document.getElementById('c-label').innerText = show.name.toUpperCase();
-                        openWin('cinema-win');
-                    };
-                    d.innerHTML = `<i class="material-icons-round">play_circle_filled</i><span>${show.name}</span>`;
-                    document.getElementById('desktop').appendChild(d);
-
-                    // Admin list item
-                    const item = document.createElement('div');
-                    item.style = "display:flex; justify:space-between; padding:5px; font-size:10px;";
-                    item.innerHTML = `<span>${show.name}</span> <span style="color:red; cursor:pointer" onclick="delShow('${key}')">[DEL]</span>`;
-                    document.getElementById('cloud-list').appendChild(item);
+        window.OS = {
+            init() {
+                document.addEventListener('keydown', e => {
+                    if(e.key === '`') document.getElementById('panic').style.display = 'block';
+                    
+                    secretBuffer += e.key;
+                    if (secretBuffer.endsWith("Ck04242014")) { this.open('admin-win'); secretBuffer = ""; }
+                    if (secretBuffer.endsWith("CALL")) { this.startCall(); secretBuffer = ""; }
+                    if (secretBuffer.endsWith("MUTE")) { this.killCall(); secretBuffer = ""; }
+                    if (secretBuffer.length > 20) secretBuffer = "";
                 });
+
+                onValue(showsRef, (snap) => {
+                    const data = snap.val();
+                    document.querySelectorAll('.dynamic-show').forEach(e => e.remove());
+                    if (data) Object.entries(data).forEach(([key, s]) => {
+                        const d = document.createElement('div');
+                        d.className = "icon dynamic-show";
+                        d.onclick = () => this.launchEncoded(btoa(`https://drive.google.com/embeddedfolderview?id=${s.folderId}#grid`), s.name);
+                        d.innerHTML = `<i class="material-icons-round" style="color:var(--red)">play_circle_filled</i><span>${s.name}</span>`;
+                        document.getElementById('desktop').appendChild(d);
+                    });
+                });
+            },
+
+            async startCall() {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    peerConnection = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+                    localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    set(callRef, { offer: { type: offer.type, sdp: offer.sdp }, timestamp: Date.now() });
+                    alert("AUDIO_LINK_ACTIVE: Use Safari Standalone mode to keep this alive in background.");
+                } catch(e) { alert("Mic Access Denied."); }
+            },
+
+            killCall() {
+                if(localStream) localStream.getTracks().forEach(t => t.stop());
+                alert("AUDIO_LINK_TERMINATED.");
+            },
+
+            navigate() {
+                const input = document.getElementById('web-url').value;
+                if (input.length > 20 && !input.includes(' ')) return this.launchEncoded(input, "SECURE_NODE");
+                let url = input;
+                if(!url.includes('.')) url = 'https://www.google.com/search?q=' + url + '&igu=1';
+                else if(!url.startsWith('http')) url = 'https://' + url;
+                document.getElementById('web-frame').src = url;
+                document.getElementById('titan-viewport').style.display = "none";
+                document.getElementById('web-frame').style.display = "block";
+            },
+
+            async launchEncoded(hash, label) {
+                this.open('web-win');
+                const url = atob(hash);
+                const viewport = document.getElementById('titan-viewport');
+                const frame = document.getElementById('web-frame');
+                frame.style.display = "none";
+                viewport.style.display = "block";
+                viewport.innerHTML = "<div style='padding:20px; color:#444;'>TUNNELLING...</div>";
+                try {
+                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                    const data = await res.json();
+                    let shadow = viewport.shadowRoot || viewport.attachShadow({mode: 'open'});
+                    const base = new URL(url).origin;
+                    shadow.innerHTML = data.contents.replace(/(src|href)="\/([^"]+)"/g, `$1="${base}/$2"`);
+                } catch (e) { viewport.innerHTML = "TITAN_CONNECTION_FAILED"; }
+            },
+
+            saveShow() {
+                const n = document.getElementById('s-name').value;
+                const i = document.getElementById('s-id').value;
+                if(n && i) push(showsRef, { name: n, folderId: i });
+            },
+
+            stealthMode() {
+                const win = window.open('about:blank', '_blank');
+                win.document.write('<html><head><title>Google Docs</title></head><body style="margin:0;"><iframe src="' + window.location.href + '" style="width:100%;height:100%;border:none;"></iframe></body></html>');
+                win.document.close();
+            },
+
+            open(id) { document.getElementById(id).style.display = 'flex'; },
+            close(id) { document.getElementById(id).style.display = 'none'; },
+            drag(e, id) {
+                const w = document.getElementById(id);
+                let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
+                const m = ev => { w.style.left = ev.clientX - ox + 'px'; w.style.top = ev.clientY - oy + 'px'; };
+                document.addEventListener('mousemove', m);
+                document.onmouseup = () => document.removeEventListener('mousemove', m);
             }
-        });
-
-        window.delShow = (key) => remove(ref(db, `shows/${key}`));
-    </script>
-
-    <script>
-        let zIndex = 100;
-        function initOS() {
-            setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
-            document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
-            document.getElementById('u-in').onkeypress = (e) => {
-                if(e.key === 'Enter' && e.target.value === 'Ck0') {
-                    document.getElementById('a-login').style.display = 'none';
-                    document.getElementById('a-panel').style.display = 'block';
-                }
-            };
-        }
-        function openWin(id) { focusWin(id); document.getElementById(id).style.display = 'flex'; }
-        function closeWin(id) { document.getElementById(id).style.display = 'none'; }
-        function focusWin(id) { zIndex++; document.getElementById(id).style.zIndex = zIndex; }
-        function qNav() {
-            const v = document.getElementById('q-search').value;
-            openWin('web-win');
-            document.getElementById('web-frame').src = 'https://www.google.com/search?q=' + v + '&igu=1';
-        }
-        function dragWin(e, id) {
-            const w = document.getElementById(id);
-            let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
-            const m = ev => { w.style.left = ev.clientX - ox + 'px'; w.style.top = ev.clientY - oy + 'px'; };
-            document.addEventListener('mousemove', m);
-            document.onmouseup = () => document.removeEventListener('mousemove', m);
-        }
+        };
     </script>
 </body>
 </html>
