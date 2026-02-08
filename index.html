@@ -3,74 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenith Centurion v51</title>
+    <title>Starship OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* CORE OS THEME */
-        :root { --bg: #0f0f13; --accent: #7c3aed; --win-bg: #18181b; --text: #e4e4e7; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; user-select: none; }
-        
-        /* DESKTOP & WINDOWS */
-        #desktop { width: 100%; height: 100%; position: relative; z-index: 1; }
-        .window { position: absolute; background: var(--win-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; min-width: 300px; min-height: 200px; resize: both; }
-        .win-bar { height: 36px; background: rgba(0,0,0,0.4); display: flex; align-items: center; padding: 0 10px; cursor: default; backdrop-filter: blur(10px); }
-        .win-title { font-size: 12px; font-weight: 700; color: #a1a1aa; flex-grow: 1; text-transform: uppercase; letter-spacing: 1px; pointer-events: none; }
+        /* STARSHIP THEME INTEGRATION */
+        :root { 
+            --bg: #050505; 
+            --accent: #8a2be2; /* Matches your TV.html */
+            --win-bg: #120032; /* Matches your Start.html */
+            --text: #eee;
+        }
+        body { 
+            background: radial-gradient(circle at top left, #120032 0%, #000000 90%); /* Your Starship Gradient */
+            color: var(--text); 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+            height: 100vh; 
+            user-select: none; 
+        }
+
+        /* DYNAMIC WINDOW SYSTEM */
+        #desktop { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+        .window { 
+            position: absolute; 
+            background: #0d0d14; 
+            border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border */
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 40px rgba(138, 43, 226, 0.1); 
+            overflow: hidden; 
+            min-width: 320px; 
+            min-height: 200px; 
+            pointer-events: auto;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .win-bar { 
+            height: 36px; 
+            background: linear-gradient(90deg, #1a1f4a, #0b0f2e); /* Matches Profile.html */
+            display: flex; 
+            align-items: center; 
+            padding: 0 12px; 
+            cursor: grab; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .win-bar:active { cursor: grabbing; }
+        .win-title { font-size: 11px; font-weight: 900; letter-spacing: 1px; color: #a78bfa; flex-grow: 1; text-transform: uppercase; }
         .win-controls { display: flex; gap: 8px; }
-        .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .win-btn { width: 10px; height: 10px; border-radius: 50%; cursor: pointer; opacity: 0.8; }
+        .win-btn:hover { opacity: 1; }
         .close-btn { background: #ef4444; } .max-btn { background: #f59e0b; } .min-btn { background: #10b981; }
-        .win-content { flex-grow: 1; position: relative; background: #000; overflow: hidden; }
         
-        /* DRAG SHIELD (Fixes iframe drag issue) */
+        .win-content { flex-grow: 1; position: relative; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; background: #0b0f2e; }
+
+        /* DRAG SHIELD (Fixes the "Broken UI" when dragging over iframes) */
         .drag-shield { position: absolute; inset: 0; z-index: 50; display: none; }
         .window.dragging .drag-shield { display: block; }
 
-        /* TASKBAR */
-        #taskbar { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); height: 60px; background: rgba(20, 20, 30, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; display: flex; align-items: center; padding: 0 20px; gap: 15px; z-index: 9000; transition: bottom 0.3s; }
-        .dock-item { position: relative; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .dock-item:hover { background: rgba(255,255,255,0.1); transform: translateY(-5px); }
-        .dock-item i { font-size: 28px; color: #fff; }
-        
-        /* START MENU GRID */
-        #app-grid { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 600px; height: 500px; background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(30px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 8000; display: grid; grid-template-columns: repeat(5, 1fr); padding: 30px; gap: 15px; overflow-y: auto; }
-        #app-grid.active { bottom: 90px; }
-        .grid-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-        .grid-item:hover { background: rgba(255,255,255,0.1); }
-        .grid-item i { font-size: 32px; }
-        .grid-item span { font-size: 10px; color: #ccc; font-weight: 600; }
+        /* THE DOCK */
+        #dock { 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            height: 64px; 
+            background: rgba(18, 0, 50, 0.7); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 24px; 
+            display: flex; align-items: center; padding: 0 20px; gap: 10px; 
+            z-index: 9000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .dock-icon { 
+            width: 48px; height: 48px; 
+            border-radius: 14px; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            position: relative;
+        }
+        .dock-icon:hover { transform: translateY(-10px) scale(1.1); background: rgba(255,255,255,0.1); }
+        .dock-icon i { font-size: 28px; color: #fff; }
+        .dock-tooltip { 
+            position: absolute; top: -35px; background: #000; color: white; 
+            padding: 4px 8px; border-radius: 6px; font-size: 10px; opacity: 0; 
+            pointer-events: none; transition: 0.2s; white-space: nowrap;
+        }
+        .dock-icon:hover .dock-tooltip { opacity: 1; top: -45px; }
 
-        /* PANIC SCREEN */
-        #panic { position: fixed; inset: 0; background: white; z-index: 999999; display: none; }
+        /* APP DRAWER (The 51 Features) */
+        #app-drawer { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); 
+            width: 700px; height: 500px; 
+            background: rgba(13, 13, 20, 0.95); 
+            border-radius: 20px; 
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            display: grid; grid-template-columns: repeat(6, 1fr); 
+            padding: 30px; gap: 15px; 
+            z-index: 8000; opacity: 0; pointer-events: none; transition: 0.2s;
+        }
+        #app-drawer.active { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; padding: 10px; border-radius: 8px; }
+        .drawer-item:hover { background: rgba(255,255,255,0.1); }
         
-        /* CUSTOM APPS CSS */
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); height: 100%; gap: 1px; background: #333; }
-        .calc-btn { background: #222; border: none; color: white; font-size: 18px; cursor: pointer; }
-        .calc-btn:hover { background: #444; }
-        .paint-toolbar { height: 40px; background: #222; display: flex; align-items: center; gap: 10px; padding: 0 10px; }
+        /* PANIC */
+        #panic-layer { position: fixed; inset: 0; background: #fff; z-index: 999999; display: none; }
     </style>
 </head>
 <body onload="OS.boot()">
 
-    <div id="panic"><iframe src="https://classroom.google.com" style="width:100%; height:100%; border:none;"></iframe></div>
+    <div id="panic-layer"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
 
     <div id="desktop"></div>
 
-    <div id="taskbar">
-        <div class="dock-item" onclick="OS.toggleGrid()"><i class="material-icons-round" style="color: white;">grid_view</i></div>
-        <div style="width:1px; height:30px; background:rgba(255,255,255,0.2);"></div>
-        <div class="dock-item" onclick="OS.open('tunnel')"><i class="material-icons-round" style="color:#60a5fa">public</i></div>
-        <div class="dock-item" onclick="OS.open('arcade')"><i class="material-icons-round" style="color:#f87171">sports_esports</i></div>
-        <div class="dock-item" onclick="OS.open('discord')"><i class="material-icons-round" style="color:#818cf8">discord</i></div>
-        <div class="dock-item" onclick="OS.open('spotify')"><i class="material-icons-round" style="color:#4ade80">play_circle</i></div>
+    <div id="dock">
+        <div class="dock-icon" onclick="OS.toggleDrawer()">
+            <i class="material-icons-round" style="color:#fff;">grid_view</i>
+            <span class="dock-tooltip">All Apps</span>
+        </div>
+        <div style="width:1px; height:24px; background:rgba(255,255,255,0.2); margin:0 5px;"></div>
+        
+        <div class="dock-icon" onclick="OS.open('home')">
+            <i class="material-icons-round" style="color:#8a2be2;">rocket_launch</i>
+            <span class="dock-tooltip">Starship Dashboard</span>
+        </div>
+        <div class="dock-icon" onclick="OS.open('tv')">
+            <i class="material-icons-round" style="color:#c084fc;">live_tv</i>
+            <span class="dock-tooltip">Star TV</span>
+        </div>
+        <div class="dock-icon" onclick="OS.open('profile')">
+            <i class="material-icons-round" style="color:#4ade80;">account_circle</i>
+            <span class="dock-tooltip">Profile</span>
+        </div>
+        
+        <div style="width:1px; height:24px; background:rgba(255,255,255,0.2); margin:0 5px;"></div>
+        
+        <div class="dock-icon" onclick="OS.open('discord')">
+            <i class="material-icons-round" style="color:#5865F2;">discord</i>
+            <span class="dock-tooltip">Discord</span>
+        </div>
+        <div class="dock-icon" onclick="OS.open('browser')">
+            <i class="material-icons-round" style="color:#3b82f6;">public</i>
+            <span class="dock-tooltip">Tunnel</span>
+        </div>
     </div>
 
-    <div id="app-grid">
+    <div id="app-drawer">
         </div>
 
-    <template id="win-template">
-        <div class="window" style="width: 600px; height: 450px;">
+    <template id="win-temp">
+        <div class="window">
             <div class="win-bar">
-                <div class="win-title">APP_NAME</div>
+                <div class="win-title">Title</div>
                 <div class="win-controls">
                     <div class="win-btn min-btn"></div>
                     <div class="win-btn max-btn"></div>
@@ -79,223 +163,120 @@
             </div>
             <div class="win-content">
                 <div class="drag-shield"></div>
-                </div>
+            </div>
         </div>
     </template>
 
     <script>
         const OS = {
             zIndex: 100,
+            // THIS MAPS YOUR FILES TO THE OS
             apps: {
-                // --- INTERNET & TUNNEL ---
-                'tunnel': { title: 'Titan Tunnel', icon: 'public', color: '#60a5fa', type: 'iframe', url: 'https://www.bing.com' },
-                'browser': { title: 'Incognito', icon: 'travel_explore', color: '#94a3b8', type: 'iframe', url: 'https://www.google.com/search?igu=1' },
+                'home': { title: 'Starship Dashboard', url: 'start.html', icon: 'rocket_launch', color: '#8a2be2' },
+                'tv': { title: 'Star TV', url: 'tv.html', icon: 'live_tv', color: '#c084fc' },
+                'profile': { title: 'User Profile', url: 'profile.html', icon: 'account_circle', color: '#4ade80' },
                 
-                // --- GAMING (Features 6-10) ---
-                'arcade': { title: 'Zenith Arcade', icon: 'sports_esports', color: '#f87171', type: 'iframe', url: 'https://www.easyfun.gg/embed/roblox.html?start=1' },
-                'minecraft': { title: 'Eaglercraft', icon: 'dns', color: '#4ade80', type: 'iframe', url: 'https://eaglercraft.com/mc/1.8.8/' },
-                'retro': { title: 'Retro Arch', icon: 'videogame_asset', color: '#fbbf24', type: 'iframe', url: 'https://v86.sh' },
-                '2048': { title: '2048', icon: 'grid_4x4', color: '#fb923c', type: 'iframe', url: 'https://play2048.co/' },
-
-                // --- MEDIA (Features 20-25) ---
-                'spotify': { title: 'Spotify', icon: 'library_music', color: '#4ade80', type: 'iframe', url: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M' },
-                'tv': { title: 'Star TV', icon: 'live_tv', color: '#c084fc', type: 'iframe', url: 'tv.html' },
-                'youtube': { title: 'YouTube', icon: 'smart_display', color: '#ef4444', type: 'iframe', url: 'https://www.youtube.com/embed?listType=playlist&list=PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj' },
-
-                // --- UTILITIES (Features 30-45) ---
-                'calc': { title: 'Calculator', icon: 'calculate', color: '#38bdf8', type: 'custom', code: 'calculator' },
-                'paint': { title: 'Canvas Paint', icon: 'brush', color: '#f472b6', type: 'custom', code: 'paint' },
-                'todo': { title: 'Tasks', icon: 'check_circle', color: '#22d3ee', type: 'custom', code: 'todo' },
-                'clock': { title: 'World Clock', icon: 'schedule', color: '#e879f9', type: 'custom', code: 'clock' },
-                'code': { title: 'VS Code', icon: 'code', color: '#0ea5e9', type: 'iframe', url: 'https://vscode.dev' },
-                'weather': { title: 'Weather', icon: 'cloud', color: '#a78bfa', type: 'custom', code: 'weather' },
-                
-                // --- SYSTEM ---
-                'discord': { title: 'Discord', icon: 'discord', color: '#818cf8', type: 'iframe', url: 'https://discord.com/app' },
-                'profile': { title: 'Profile', icon: 'account_circle', color: '#fff', type: 'iframe', url: 'profile.html' },
-                'files': { title: 'File Manager', icon: 'folder', color: '#facc15', type: 'custom', code: 'files' },
-                'settings': { title: 'Settings', icon: 'settings', color: '#9ca3af', type: 'custom', code: 'settings' }
+                // EXTRAS
+                'discord': { title: 'Discord', url: 'https://discord.com/app', icon: 'discord', color: '#5865F2' },
+                'browser': { title: 'Titan Tunnel', url: 'https://www.google.com/search?igu=1', icon: 'public', color: '#3b82f6' },
+                'roblox': { title: 'Roblox Cloud', url: 'https://www.easyfun.gg/embed/roblox.html?start=1', icon: 'sports_esports', color: '#ef4444' },
+                'spotify': { title: 'Spotify', url: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M', icon: 'library_music', color: '#1db954' },
+                'calc': { title: 'Calculator', type: 'widget', code: 'calc', icon: 'calculate', color: '#f59e0b' },
+                'todo': { title: 'Tasks', type: 'widget', code: 'todo', icon: 'check_circle', color: '#06b6d4' }
             },
 
             boot() {
-                this.renderGrid();
-                document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
+                this.renderDrawer();
+                document.addEventListener('keydown', e => { 
+                    if(e.key === '`') document.getElementById('panic-layer').style.display = 'block'; 
+                });
                 
-                // Auto-launch startup sound or welcome notification here
-                console.log('ZENITH_OS: 51 Modules Loaded.');
+                // Auto-launch your Dashboard on start
+                setTimeout(() => this.open('home'), 500);
             },
 
-            toggleGrid() {
-                document.getElementById('app-grid').classList.toggle('active');
+            renderDrawer() {
+                const d = document.getElementById('app-drawer');
+                Object.keys(this.apps).forEach(k => {
+                    const app = this.apps[k];
+                    d.innerHTML += `
+                        <div class="drawer-item" onclick="OS.open('${k}')">
+                            <i class="material-icons-round" style="font-size:32px; color:${app.color}">${app.icon}</i>
+                            <span style="font-size:10px; color:#aaa; font-weight:bold;">${app.title}</span>
+                        </div>`;
+                });
+            },
+
+            toggleDrawer() {
+                document.getElementById('app-drawer').classList.toggle('active');
             },
 
             open(id) {
+                document.getElementById('app-drawer').classList.remove('active');
                 const app = this.apps[id];
-                const template = document.getElementById('win-template').content.cloneNode(true);
-                const win = template.querySelector('.window');
-                const content = win.querySelector('.win-content');
-
-                // Unique ID & Z-Index
+                const temp = document.getElementById('win-temp').content.cloneNode(true);
+                const win = temp.querySelector('.window');
+                
+                // WINDOW SETUP
                 win.id = `win-${Date.now()}`;
                 win.style.zIndex = ++this.zIndex;
-                win.style.top = `${10 + (Math.random() * 10)}%`;
-                win.style.left = `${10 + (Math.random() * 10)}%`;
-
-                // Set Title
-                win.querySelector('.win-title').textContent = app.title;
-
-                // Load Content
-                if (app.type === 'iframe') {
-                    content.innerHTML += `<iframe src="${app.url}" style="width:100%; height:100%; border:none; background:#fff;"></iframe>`;
-                } else if (app.type === 'custom') {
-                    content.innerHTML += this.getCustomCode(app.code);
-                    if(app.code === 'paint') setTimeout(this.initPaint, 100, win);
-                    if(app.code === 'clock') setInterval(() => this.updateClock(win), 1000);
+                win.style.width = '800px'; 
+                win.style.height = '600px';
+                win.style.top = (10 + Math.random()*5) + '%';
+                win.style.left = (15 + Math.random()*5) + '%';
+                
+                win.querySelector('.win-title').innerText = app.title;
+                
+                // CONTENT LOADING
+                const content = win.querySelector('.win-content');
+                if(app.type === 'widget') {
+                    content.innerHTML += this.getWidget(app.code);
+                } else {
+                    // This loads your uploaded HTML files
+                    content.innerHTML += `<iframe src="${app.url}"></iframe>`;
                 }
 
-                // Window Actions
+                // CONTROLS
                 win.querySelector('.close-btn').onclick = () => win.remove();
                 win.querySelector('.max-btn').onclick = () => {
-                    win.style.top=0; win.style.left=0; win.style.width='100%'; win.style.height='100%';
+                    win.style.top = '0'; win.style.left = '0'; win.style.width = '100%'; win.style.height = '100%';
                 };
                 
-                // Drag Logic
-                this.makeDraggable(win);
-                
-                // Focus Logic
+                // FOCUS & DRAG
                 win.onmousedown = () => { win.style.zIndex = ++this.zIndex; };
-
+                this.makeDraggable(win);
                 document.getElementById('desktop').appendChild(win);
-                document.getElementById('app-grid').classList.remove('active');
             },
 
             makeDraggable(el) {
-                const header = el.querySelector('.win-bar');
-                let isDragging = false;
-                let startX, startY, initialLeft, initialTop;
-
-                header.onmousedown = (e) => {
-                    isDragging = true;
-                    el.classList.add('dragging'); // Activates iframe shield
+                const bar = el.querySelector('.win-bar');
+                let isDrag = false, startX, startY, initX, initY;
+                
+                bar.onmousedown = (e) => {
+                    isDrag = true;
+                    el.classList.add('dragging'); // Shield activates to cover iframes
                     el.style.zIndex = ++this.zIndex;
-                    startX = e.clientX;
-                    startY = e.clientY;
-                    initialLeft = el.offsetLeft;
-                    initialTop = el.offsetTop;
-
+                    startX = e.clientX; startY = e.clientY;
+                    initX = el.offsetLeft; initY = el.offsetTop;
+                    
                     document.onmousemove = (e) => {
-                        if (!isDragging) return;
-                        el.style.left = `${initialLeft + e.clientX - startX}px`;
-                        el.style.top = `${initialTop + e.clientY - startY}px`;
+                        if(!isDrag) return;
+                        el.style.left = (initX + e.clientX - startX) + 'px';
+                        el.style.top = (initY + e.clientY - startY) + 'px';
                     };
-
+                    
                     document.onmouseup = () => {
-                        isDragging = false;
-                        el.classList.remove('dragging'); // Deactivates shield
+                        isDrag = false;
+                        el.classList.remove('dragging'); // Shield deactivates
                         document.onmousemove = null;
                         document.onmouseup = null;
                     };
                 };
             },
 
-            renderGrid() {
-                const grid = document.getElementById('app-grid');
-                Object.keys(this.apps).forEach(key => {
-                    const app = this.apps[key];
-                    const item = document.createElement('div');
-                    item.className = 'grid-item';
-                    item.onclick = () => this.open(key);
-                    item.innerHTML = `
-                        <i class="material-icons-round" style="color:${app.color}">${app.icon}</i>
-                        <span>${app.title}</span>
-                    `;
-                    grid.appendChild(item);
-                });
-            },
-
-            getCustomCode(type) {
-                if(type === 'calculator') return `
-                    <div class="calc-grid">
-                        <input type="text" id="calc-display" style="grid-column: span 4; background:#000; color:white; font-size:24px; text-align:right; padding:10px; border:none;" readonly>
-                        ${['C','/','*','-','7','8','9','+','4','5','6','=','1','2','3','0'].map(k => 
-                            `<button class="calc-btn" onclick="OS.calcInput('${k}')">${k}</button>`
-                        ).join('')}
-                    </div>`;
-                
-                if(type === 'paint') return `
-                    <div style="display:flex; flex-direction:column; height:100%;">
-                        <div class="paint-toolbar">
-                            <input type="color" id="p-color" value="#ffffff">
-                            <input type="range" id="p-size" min="1" max="20" value="5">
-                            <button onclick="OS.clearPaint()" style="margin-left:auto; padding:5px 10px;">Clear</button>
-                        </div>
-                        <canvas id="paint-canvas" style="flex-grow:1; background:#111; touch-action:none;"></canvas>
-                    </div>`;
-
-                if(type === 'clock') return `
-                    <div style="display:flex; align-items:center; justify-content:center; height:100%; flex-direction:column; background:#000;">
-                        <div id="clock-face" style="font-size:48px; font-weight:bold; color:white;">00:00:00</div>
-                        <div id="date-face" style="font-size:16px; color:#888;">Monday, Jan 1</div>
-                    </div>`;
-                    
-                if(type === 'todo') return `
-                    <div style="padding:20px; color:white; height:100%; overflow:auto;">
-                        <input type="text" id="todo-input" placeholder="Add task..." style="width:100%; padding:10px; background:#222; border:none; color:white; border-radius:5px;" onkeypress="if(event.key==='Enter') OS.addTodo(this)">
-                        <ul id="todo-list" style="list-style:none; padding:0; margin-top:15px;"></ul>
-                    </div>`;
-
-                return `<div style="padding:20px; color:white;">Feature loading...</div>`;
-            },
-
-            // --- APP LOGIC ---
-            calcInput(val) {
-                const d = document.querySelector('#calc-display'); // Note: targets first active calc (simplified)
-                if(val === 'C') d.value = '';
-                else if(val === '=') try { d.value = eval(d.value) } catch { d.value = 'Error' }
-                else d.value += val;
-            },
-
-            initPaint(win) {
-                const cvs = win.querySelector('canvas');
-                const ctx = cvs.getContext('2d');
-                cvs.width = cvs.parentElement.clientWidth;
-                cvs.height = cvs.parentElement.clientHeight;
-                let painting = false;
-
-                const start = (e) => { painting = true; draw(e); };
-                const end = () => { painting = false; ctx.beginPath(); };
-                const draw = (e) => {
-                    if(!painting) return;
-                    const rect = cvs.getBoundingClientRect();
-                    ctx.lineWidth = win.querySelector('#p-size').value;
-                    ctx.lineCap = 'round';
-                    ctx.strokeStyle = win.querySelector('#p-color').value;
-                    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-                };
-
-                cvs.addEventListener('mousedown', start);
-                cvs.addEventListener('mouseup', end);
-                cvs.addEventListener('mousemove', draw);
-            },
-
-            updateClock(win) {
-                const now = new Date();
-                win.querySelector('#clock-face').innerText = now.toLocaleTimeString();
-                win.querySelector('#date-face').innerText = now.toDateString();
-            },
-
-            addTodo(input) {
-                if(!input.value.trim()) return;
-                const ul = input.parentElement.querySelector('ul');
-                const li = document.createElement('li');
-                li.innerHTML = `<span style="cursor:pointer;" onclick="this.parentElement.remove()">🗑️</span> ${input.value}`;
-                li.style.padding = "8px";
-                li.style.borderBottom = "1px solid #333";
-                ul.appendChild(li);
-                input.value = "";
+            getWidget(code) {
+                if(code === 'calc') return `<div style="padding:20px; color:white; text-align:center;">Simple Calculator Placeholder</div>`;
+                if(code === 'todo') return `<div style="padding:20px; color:white;">Task List Placeholder</div>`;
             }
         };
     </script>
