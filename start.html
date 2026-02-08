@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starship Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a0033 0%, #050505 100%);
+            color: #eee;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Stargate Portal Animation */
+        .portal {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            border: 2px solid rgba(138, 43, 226, 0.2);
+            box-shadow: 0 0 100px rgba(138, 43, 226, 0.1);
+            z-index: -1;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            background: linear-gradient(to bottom, #fff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            filter: drop-shadow(0 0 20px rgba(138, 43, 226, 0.5));
+        }
+
+        /* Search Bar */
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 50px;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+        }
+
+        .search-box:focus-within {
+            border-color: #8a2be2;
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
+            transform: scale(1.02);
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            flex-grow: 1;
+            font-size: 1.1rem;
+            outline: none;
+            padding-left: 15px;
+        }
+
+        /* Quick Links Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 4rem;
+            max-width: 800px;
+        }
+
+        .quick-link {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #ccc;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 120px;
+        }
+
+        .quick-link:hover {
+            background: rgba(138, 43, 226, 0.1);
+            border-color: #8a2be2;
+            color: white;
+            transform: translateY(-5px);
+        }
+
+        .quick-link i {
+            font-size: 2rem;
+        }
+
+        /* System Info Widget */
+        .system-stats {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            text-align: right;
+            font-size: 12px;
+            color: #555;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="portal"></div>
+
+    <div class="header">
+        <h1>STARSHIP</h1>
+        <p class="text-purple-400 font-bold tracking-widest uppercase text-xs">Voyager Command Center</p>
+    </div>
+
+    <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass text-purple-500"></i>
+        <input type="text" id="search" placeholder="Execute search or enter command...">
+    </div>
+
+    <div class="grid-container">
+        <a href="#" onclick="parent.OS.open('arcade')" class="quick-link">
+            <i class="fa-solid fa-gamepad text-red-500"></i>
+            <span class="text-[10px] font-bold">ARCADE</span>
+        </a>
+        <a href="#" onclick="parent.OS.open('tv')" class="quick-link">
+            <i class="fa-solid fa-tv text-purple-400"></i>
+            <span class="text-[10px] font-bold">STAR TV</span>
+        </a>
+        <a href="#" onclick="parent.OS.open('discord')" class="quick-link">
+            <i class="fa-brands fa-discord text-indigo-400"></i>
+            <span class="text-[10px] font-bold">COMMS</span>
+        </a>
+        <a href="#" onclick="parent.OS.open('tunnel')" class="quick-link">
+            <i class="fa-solid fa-shield-halved text-blue-400"></i>
+            <span class="text-[10px] font-bold">TUNNEL</span>
+        </a>
+    </div>
+
+    <div class="system-stats">
+        <div id="clock">00:00:00</div>
+        <div>KERNEL STATUS: <span class="text-emerald-500">OPTIMAL</span></div>
+    </div>
+
+    <script>
+        // Update Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Search Redirect Logic
+        document.getElementById('search').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const query = this.value;
+                if(query.includes('.')) {
+                    parent.OS.open('tunnel'); // Open tunnel if it looks like a URL
+                } else {
+                    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
