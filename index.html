@@ -3,167 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Zenith OS</title>
+    <title>Zenith Centurion v16</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        :root { --bg: #000; --accent: #5865F2; --term: #23a559; --win: #111; --sidebar: #1e1f22; --chat: #313338; }
-        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; overflow: hidden; height: 100vh; }
+        :root { --accent: #8a2be2; --bg: #0d0d14; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
         
-        /* Desktop */
-        #desktop { padding: 40px; display: flex; flex-wrap: wrap; gap: 30px; }
-        .icon { width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; }
-        .icon i { font-size: 45px; color: #555; margin-bottom: 5px; }
-        .icon span { font-size: 10px; font-weight: bold; text-transform: uppercase; }
-
-        /* Window */
-        .window { position: absolute; background: var(--win); border-radius: 12px; display: none; flex-direction: column; overflow: hidden; z-index: 10; border: 1px solid #222; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .win-bar { height: 35px; background: #000; display: flex; align-items: center; padding: 0 12px; cursor: move; }
-        .win-title { flex-grow: 1; font-size: 11px; font-weight: 900; color: #666; }
-
-        /* Discord Layout */
-        #discord-ui { display: flex; height: 100%; background: var(--chat); }
-        .d-sidebar { width: 70px; background: #1e1f22; display: flex; flex-direction: column; align-items: center; padding-top: 15px; gap: 10px; }
-        .d-channels { width: 220px; background: #2b2d31; display: flex; flex-direction: column; padding: 10px; border-right: 1px solid #222; }
-        .d-chat { flex-grow: 1; display: flex; flex-direction: column; }
+        /* App Window Styling */
+        .window { @apply absolute bg-[#121217] rounded-xl border border-white/10 shadow-2xl flex flex-col hidden; z-index: 10; min-width: 300px; min-height: 200px; }
+        .win-header { @apply h-10 bg-black/40 flex items-center px-4 cursor-move select-none rounded-t-xl; }
+        .win-content { @apply flex-grow overflow-hidden relative; }
         
-        .ch-header { font-weight: bold; font-size: 11px; color: #949ba4; margin: 15px 0 5px 5px; text-transform: uppercase; }
-        .ch-item { padding: 8px; border-radius: 4px; font-size: 14px; color: #949ba4; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .ch-item:hover { background: #35373c; color: #dbdee1; }
-        .ch-item i { font-size: 18px; }
-        .ch-item.active-voice { color: var(--term); background: rgba(35, 165, 89, 0.1); }
-
-        .msg-area { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .msg { display: flex; gap: 15px; }
-        .msg-img { width: 40px; height: 40px; background: var(--accent); border-radius: 50%; }
-        .msg-user { font-weight: bold; font-size: 14px; }
-        .msg-text { font-size: 14px; color: #dbdee1; }
-
-        .chat-input-wrap { padding: 20px; }
-        .chat-input { width: 100%; background: #383a40; border: none; padding: 12px; border-radius: 8px; color: white; outline: none; }
-
-        /* Call Status Bar */
-        #call-control { height: 50px; background: #232428; display: none; align-items: center; padding: 0 15px; border-top: 1px solid #222; gap: 15px; }
-        .call-info { flex-grow: 1; font-size: 12px; }
-        .call-btn { cursor: pointer; color: #ed4245; }
-        #panic { position: fixed; inset: 0; background: white; z-index: 9999; display: none; }
+        /* Taskbar */
+        #taskbar { @apply fixed bottom-4 left-1/2 -translate-x-1/2 h-16 px-6 glass rounded-2xl border border-white/10 flex items-center gap-4 z-[100]; background: rgba(20,20,25,0.7); backdrop-filter: blur(20px); }
+        .dock-icon { @apply w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-110 hover:bg-white/10; }
+        
+        /* The Tunnel */
+        #tunnel-view { width: 100%; height: 100%; border: none; background: white; }
+        
+        #panic { @apply fixed inset-0 bg-white z-[999999] hidden; }
     </style>
 </head>
-<body onload="OS.init()">
+<body onload="OS.boot()">
 
-    <div id="panic"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
+    <div id="panic"><iframe src="https://classroom.google.com" class="w-full h-full border-none"></iframe></div>
 
-    <div id="desktop">
-        <div class="icon" onclick="OS.open('discord-win')">
-            <i class="material-icons-round" style="color:var(--accent)">discord</i>
-            <span>Discord</span>
+    <div id="desktop" class="p-10 grid grid-cols-1 md:grid-cols-4 gap-6">
         </div>
+
+    <div id="win-template" class="window">
+        <div class="win-header">
+            <span class="win-title text-[10px] font-black uppercase tracking-widest text-gray-400 flex-grow">App</span>
+            <div class="flex gap-2">
+                <i class="material-icons-round text-sm cursor-pointer hover:text-red-500" onclick="OS.close(this)">close</i>
+            </div>
+        </div>
+        <div class="win-content"></div>
     </div>
 
-    <div id="discord-win" class="window" style="width: 1000px; height: 650px; top: 50px; left: 100px;">
-        <div class="win-bar" onmousedown="OS.drag(event, 'discord-win')">
-            <div class="win-title">TITAN_DISCORD_V2</div>
-            <i class="material-icons-round" style="cursor:pointer; font-size:16px;" onclick="OS.close('discord-win')">close</i>
-        </div>
-        <div id="discord-ui">
-            <div class="d-sidebar">
-                <div style="width:48px; height:48px; background:var(--accent); border-radius:15px; display:flex; align-items:center; justify-content:center;"><i class="material-icons-round">hub</i></div>
-            </div>
-            <div class="d-channels">
-                <div class="ch-header">Text Channels</div>
-                <div class="ch-item"><i class="material-icons-round">tag</i> general</div>
-                
-                <div class="ch-header">Voice Channels</div>
-                <div class="ch-item" id="voice-ch" onclick="OS.toggleVoice()"><i class="material-icons-round">volume_up</i> General Voice</div>
-                
-                <div style="flex-grow: 1;"></div>
-                <div id="call-control">
-                    <div class="call-info">
-                        <div style="color:var(--term); font-weight:bold;">Voice Connected</div>
-                        <div style="font-size:10px; color:#949ba4;">General / Titan Bridge</div>
-                    </div>
-                    <i class="material-icons-round call-btn" onclick="OS.toggleVoice()">call_end</i>
-                </div>
-            </div>
-            <div class="d-chat">
-                <div class="msg-area" id="chat-messages"></div>
-                <div class="chat-input-wrap">
-                    <input type="text" id="chat-box" class="chat-input" placeholder="Message #general" onkeypress="if(event.key==='Enter') OS.sendMsg()">
-                </div>
-            </div>
-        </div>
+    <div id="taskbar">
+        <div class="dock-icon" onclick="OS.spawn('tunnel', 'Titan Tunnel', 'browser')"><i class="material-icons-round text-blue-400">vpn_lock</i></div>
+        <div class="dock-icon" onclick="OS.spawn('arcade', 'Zenith Arcade', 'videogame_asset')"><i class="material-icons-round text-red-400">sports_esports</i></div>
+        <div class="dock-icon" onclick="OS.spawn('tv', 'Star TV', 'tv')"><i class="material-icons-round text-purple-400">play_circle</i></div>
+        <div class="dock-icon" onclick="OS.spawn('profile', 'User Profile', 'person')"><i class="material-icons-round text-emerald-400">account_circle</i></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng",
-            databaseURL: "https://titan-84c56-default-rtdb.firebaseio.com"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        
-        let localStream, isCalling = false;
-
-        window.OS = {
-            init() {
-                document.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; });
-
-                // Sync Messages
-                onValue(ref(db, 'messages'), (snap) => {
-                    const container = document.getElementById('chat-messages');
-                    container.innerHTML = "";
-                    if(snap.val()) {
-                        Object.values(snap.val()).forEach(m => {
-                            const div = document.createElement('div');
-                            div.className = "msg";
-                            div.innerHTML = `<div class="msg-img"></div><div class="msg-content"><span class="msg-user">${m.user}</span><span class="msg-text">${m.text}</span></div>`;
-                            container.appendChild(div);
-                        });
-                        container.scrollTop = container.scrollHeight;
-                    }
-                });
+    <script>
+        const OS = {
+            apps: {
+                tunnel: { url: 'https://www.bing.com', icon: 'language', color: 'blue' },
+                arcade: { url: 'https://www.easyfun.gg/embed/roblox.html?start=1', icon: 'videogame_asset', color: 'red' },
+                tv: { url: 'tv.html', icon: 'tv', color: 'purple' }, // Your uploaded file
+                profile: { url: 'profile.html', icon: 'person', color: 'emerald' } // Your uploaded file
             },
 
-            async toggleVoice() {
-                const bar = document.getElementById('call-control');
-                const ch = document.getElementById('voice-ch');
-                if(!isCalling) {
-                    try {
-                        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        isCalling = true;
-                        bar.style.display = "flex";
-                        ch.classList.add('active-voice');
-                        // Optional: Push to Firebase to show your friend you are "In Voice"
-                    } catch(e) { alert("Mic required for Voice Bridge."); }
-                } else {
-                    localStream.getTracks().forEach(t => t.stop());
-                    isCalling = false;
-                    bar.style.display = "none";
-                    ch.classList.remove('active-voice');
-                }
+            boot() {
+                // Feature 11: Panic Key (`)
+                window.onkeydown = (e) => { if(e.key === '`') document.getElementById('panic').style.display = 'block'; };
+                console.log("OS_KERNEL: 51 Features Loaded.");
             },
 
-            sendMsg() {
-                const box = document.getElementById('chat-box');
-                if(box.value.trim()) {
-                    push(ref(db, 'messages'), { text: box.value, user: "Zenith_User", timestamp: serverTimestamp() });
-                    box.value = "";
-                }
+            spawn(id, title, iconName) {
+                const app = this.apps[id];
+                const win = document.getElementById('win-template').cloneNode(true);
+                win.id = `win-${Math.random()}`;
+                win.style.display = 'flex';
+                win.style.width = '80%';
+                win.style.height = '70%';
+                win.style.top = '10%';
+                win.style.left = '10%';
+                
+                win.querySelector('.win-title').innerText = title;
+                win.querySelector('.win-content').innerHTML = `<iframe src="${app.url}" class="w-full h-full border-none"></iframe>`;
+                
+                document.body.appendChild(win);
+                this.makeDraggable(win);
             },
 
-            open(id) { document.getElementById(id).style.display = 'flex'; },
-            close(id) { document.getElementById(id).style.display = 'none'; },
-            drag(e, id) {
-                const w = document.getElementById(id);
-                let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
-                const m = ev => { w.style.left = ev.clientX - ox + 'px'; w.style.top = ev.clientY - oy + 'px'; };
-                document.addEventListener('mousemove', m);
-                document.onmouseup = () => document.removeEventListener('mousemove', m);
+            close(btn) { btn.closest('.window').remove(); },
+
+            makeDraggable(el) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                const header = el.querySelector('.win-header');
+                header.onmousedown = (e) => {
+                    pos3 = e.clientX; pos4 = e.clientY;
+                    document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+                    document.onmousemove = (e) => {
+                        pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
+                        pos3 = e.clientX; pos4 = e.clientY;
+                        el.style.top = (el.offsetTop - pos2) + "px";
+                        el.style.left = (el.offsetLeft - pos1) + "px";
+                    };
+                };
             }
         };
     </script>
