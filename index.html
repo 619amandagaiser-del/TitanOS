@@ -2,150 +2,220 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Titan OS | Proxy Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TITAN OS | VOIDWALKER v12</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <script src="https://accounts.google.com/gsi/client"></script>
     <style>
-        :root { --n-red: #E50914; --n-black: #050505; }
-        body { background: var(--n-black); color: white; font-family: sans-serif; overflow: hidden; height: 100vh; margin: 0; }
-        
-        #desktop { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); z-index: 1; }
-        
-        /* Netflix Style UI */
-        .hero { height: 60vh; display: flex; align-items: flex-end; padding: 0 5% 60px; background: linear-gradient(to top, var(--n-black), transparent), url('https://images.unsplash.com/photo-1533481006249-11ce1308a34d?auto=format&fit=crop&w=1200'); background-size: cover; }
-        
-        /* Dock Layout */
-        #dock { 
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); 
-            background: rgba(20,20,20,0.8); backdrop-filter: blur(25px); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 35px;
-            padding: 12px 30px; display: flex; gap: 30px; z-index: 9999;
+        :root { 
+            --accent: #00e5ff; 
+            --glow: 0 0 20px rgba(0, 229, 255, 0.4);
+            --panel: rgba(5, 5, 8, 0.85);
         }
-        .dock-btn { font-size: 32px; color: #666; transition: 0.3s; cursor: pointer; }
-        .dock-btn:hover { color: var(--n-red); transform: scale(1.2); }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; margin: 0; perspective: 1200px; }
+        
+        #shader-canvas { position: fixed; inset: 0; z-index: 0; }
 
-        /* Proxy Overlay */
-        #proxy-overlay { 
-            position: fixed; inset: 0; background: var(--n-black); z-index: 10000; 
-            display: none; flex-direction: column; align-items: center; justify-content: center;
+        /* 3D WINDOW STYLING */
+        .win { 
+            position: absolute; background: var(--panel); border: 1px solid rgba(0, 229, 255, 0.2);
+            backdrop-filter: blur(40px); border-radius: 8px; display: none; flex-direction: column;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9); transform-style: preserve-3d;
+            will-change: transform; transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .proxy-input-wrap { width: 90%; max-width: 600px; position: relative; }
-        .proxy-input { 
-            width: 100%; background: #111; border: 2px solid #333; padding: 20px 30px; 
-            border-radius: 50px; color: white; outline: none; font-size: 18px; transition: 0.3s;
+        .win.active { display: flex; }
+        .win-head { background: rgba(0, 229, 255, 0.05); padding: 10px 15px; cursor: grab; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 229, 255, 0.1); }
+        .win-body { flex: 1; overflow: auto; padding: 15px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+
+        /* DOCK & HUD */
+        #dock { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); border: 1px solid var(--accent);
+            padding: 10px 25px; border-radius: 12px; display: flex; gap: 30px; z-index: 10000;
+            box-shadow: var(--glow);
         }
-        .proxy-input:focus { border-color: var(--n-red); box-shadow: 0 0 20px rgba(229, 9, 20, 0.3); }
-        
-        /* Card Row */
-        .card-row { display: flex; overflow-x: auto; gap: 15px; padding: 20px 5%; scrollbar-width: none; }
-        .card { min-width: 220px; aspect-ratio: 16/9; background: #181818; border-radius: 4px; flex-shrink: 0; cursor: pointer; transition: 0.3s; position: relative; }
-        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .app-btn { font-size: 28px; cursor: pointer; color: var(--accent); transition: 0.3s; opacity: 0.6; }
+        .app-btn:hover { opacity: 1; transform: scale(1.3) translateY(-10px); }
+
+        #telemetry { position: fixed; top: 20px; left: 20px; font-family: monospace; font-size: 10px; color: var(--accent); opacity: 0.7; pointer-events: none; }
     </style>
 </head>
-<body>
+<body onclick="AudioEngine.init()">
 
-    <div id="desktop">
-        <nav class="fixed top-0 w-full p-6 flex items-center z-50 bg-gradient-to-b from-black to-transparent">
-            <h1 class="text-4xl font-black italic text-[#E50914] tracking-tighter">TITAN</h1>
-        </nav>
+    <canvas id="shader-canvas"></canvas>
 
-        <div id="main-content" class="overflow-y-auto h-full">
-            <div class="hero">
-                <div class="max-w-xl">
-                    <h2 class="text-6xl font-black mb-4 uppercase">Web Unblocker</h2>
-                    <p class="text-lg opacity-70 mb-6">Experience the internet without boundaries. Powered by Titan Proxy Engine.</p>
-                    <button onclick="UI.toggleProxy()" class="bg-white text-black px-10 py-4 rounded font-black flex items-center gap-2">
-                        <i class="material-icons-round">public</i> OPEN BROWSER
-                    </button>
-                </div>
+    <div id="telemetry">
+        <div>ORBITAL_ID: ISS (NORAD 25544)</div>
+        <div id="sat-lat">LAT: 0.0000</div>
+        <div id="sat-lng">LNG: 0.0000</div>
+        <div id="sat-vel">VEL: 27,600 km/h</div>
+    </div>
+
+    <div id="win-term" class="win" style="width: 600px; height: 400px; top: 150px; left: 100px;">
+        <div class="win-head" onmousedown="WindowPhysics.start(event, 'win-term')">
+            <span class="text-[9px] font-black tracking-[0.3em] uppercase">Quantum_Shell_v12</span>
+            <button onclick="UI.close('win-term')">×</button>
+        </div>
+        <div class="win-body">
+            <div id="output" class="mb-4 opacity-70"></div>
+            <div class="flex gap-2">
+                <span class="text-[var(--accent)]">λ</span>
+                <input type="text" id="shell-in" class="bg-transparent outline-none w-full text-white" onkeydown="if(event.key==='Enter') Shell.run(this)">
             </div>
-
-            <div class="mt-8 px-[5%] text-xl font-bold">Your Media</div>
-            <div id="media-row" class="card-row">
-                </div>
         </div>
     </div>
 
-    <div id="proxy-overlay">
-        <i class="material-icons-round absolute top-10 right-10 text-4xl cursor-pointer opacity-50 hover:opacity-100" onclick="UI.toggleProxy()">close</i>
-        <div class="text-center mb-10">
-            <h2 class="text-4xl font-black text-[#E50914] mb-2">TITAN PROXY</h2>
-            <p class="opacity-50">Enter a URL below to browse securely via redirect.</p>
+    <div id="win-stats" class="win" style="width: 400px; height: 300px; top: 200px; left: 750px;">
+        <div class="win-head" onmousedown="WindowPhysics.start(event, 'win-stats')">
+            <span class="text-[9px] font-black tracking-[0.3em] uppercase">Core_Analytics</span>
+            <button onclick="UI.close('win-stats')">×</button>
         </div>
-        <div class="proxy-input-wrap">
-            <input id="target-url" type="text" class="proxy-input" placeholder="Search or type a URL..." onkeydown="if(event.key==='Enter') UI.launchProxy()">
-            <button onclick="UI.launchProxy()" class="absolute right-4 top-4 bg-[#E50914] p-2 rounded-full">
-                <i class="material-icons-round">arrow_forward</i>
-            </button>
-        </div>
-        <div class="mt-10 flex gap-6 opacity-30">
-            <i class="material-icons-round text-5xl">google</i>
-            <i class="material-icons-round text-5xl">youtube</i>
-            <i class="material-icons-round text-5xl">discord</i>
+        <div class="win-body space-y-4">
+            <div class="p-3 bg-white/5 border border-white/10">
+                <div class="flex justify-between text-[10px] mb-2"><span>KERNEL_LATENCY</span><span id="stat-lat">4ms</span></div>
+                <div class="h-1 bg-white/10 w-full"><div id="bar-lat" class="h-full bg-[var(--accent)] w-1/4"></div></div>
+            </div>
+            <div class="text-[10px] text-zinc-500 uppercase leading-relaxed">
+                Memory Leak Protection: ACTIVE<br>
+                Z-Axis Buffer: STABLE<br>
+                Spatial Sound-Mapping: ON
+            </div>
         </div>
     </div>
 
     <div id="dock">
-        <i class="material-icons-round dock-btn" style="color:var(--n-red)" onclick="location.reload()">home</i>
-        <i class="material-icons-round dock-btn" onclick="UI.toggleProxy()">public</i>
-        <i class="material-icons-round dock-btn" onclick="UI.openSettings()">settings</i>
+        <div class="app-btn" onclick="UI.open('win-term')"><i class="material-icons-round">terminal</i></div>
+        <div class="app-btn" onclick="UI.open('win-stats')"><i class="material-icons-round">analytics</i></div>
+        <div class="app-btn" onclick="location.reload()"><i class="material-icons-round">restart_alt</i></div>
     </div>
 
     <script>
-        const UI = {
-            // Configuration
-            apiKey: 'AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng',
-            playlist: JSON.parse(localStorage.getItem('t_list') || '[]'),
-
+        const AudioEngine = {
+            ctx: null, panner: null, osc: null,
             init() {
-                this.renderMedia();
+                if(this.ctx) return;
+                this.ctx = new AudioContext();
+                this.panner = this.ctx.createStereoPanner();
+                this.osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                this.osc.type = 'sine';
+                this.osc.frequency.value = 60;
+                gain.gain.value = 0.02;
+
+                this.osc.connect(this.panner).connect(gain).connect(this.ctx.destination);
+                this.osc.start();
             },
-
-            toggleProxy() {
-                const ov = document.getElementById('proxy-overlay');
-                ov.style.display = (ov.style.display === 'flex') ? 'none' : 'flex';
-            },
-
-            launchProxy() {
-                const query = document.getElementById('target-url').value;
-                if (!query) return;
-
-                let url = query;
-                if (!url.includes('.')) {
-                    url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                } else if (!url.startsWith('http')) {
-                    url = `https://${url}`;
-                }
-
-                // Proxy Gateway Selection
-                // Since iFrames are blocked, we use a redirect-based proxy engine
-                // Encodes the URL and passes it to a web-worker proxy
-                const proxyEngine = "https://r.jina.ai/"; // High-speed clean renderer
-                window.open(proxyEngine + url, '_blank');
-            },
-
-            renderMedia() {
-                const row = document.getElementById('media-row');
-                if (this.playlist.length === 0) {
-                    row.innerHTML = `<div class="opacity-20 italic">No media mounted. Link your Drive in Settings.</div>`;
-                    return;
-                }
-                row.innerHTML = this.playlist.map((ep, i) => `
-                    <div class="card" onclick="UI.play(${i})">
-                        <img src="https://picsum.photos/seed/${ep.id}/400/225">
-                        <div class="absolute bottom-2 left-2 text-[10px] font-bold truncate w-full">${ep.name}</div>
-                    </div>
-                `).join('');
-            },
-
-            openSettings() {
-                alert("Settings Logic from Repository Active. Syncing Drive...");
+            updateSpatial(xRatio, freqMod) {
+                if(!this.panner) return;
+                this.panner.pan.setTargetAtTime((xRatio * 2) - 1, this.ctx.currentTime, 0.1);
+                this.osc.frequency.setTargetAtTime(60 + freqMod, this.ctx.currentTime, 0.1);
             }
         };
 
-        window.onload = () => UI.init();
+        const WindowPhysics = {
+            activeWin: null, velX: 0, velY: 0, lastX: 0, lastY: 0,
+            start(e, id) {
+                this.activeWin = document.getElementById(id);
+                this.activeWin.style.zIndex = Date.now();
+                this.lastX = e.clientX;
+                this.lastY = e.clientY;
+
+                const move = (ev) => {
+                    this.velX = ev.clientX - this.lastX;
+                    this.velY = ev.clientY - this.lastY;
+                    
+                    const newX = this.activeWin.offsetLeft + this.velX;
+                    const newY = this.activeWin.offsetTop + this.velY;
+                    
+                    this.activeWin.style.left = newX + 'px';
+                    this.activeWin.style.top = newY + 'px';
+                    
+                    // 3D TILT EFFECT
+                    const tiltY = Math.max(-15, Math.min(15, this.velX * 2));
+                    const tiltX = Math.max(-15, Math.min(15, -this.velY * 2));
+                    this.activeWin.style.transform = `rotateY(${tiltY}deg) rotateX(${tiltX}deg) translateZ(50px)`;
+                    
+                    this.lastX = ev.clientX;
+                    this.lastY = ev.clientY;
+
+                    AudioEngine.updateSpatial(ev.clientX / window.innerWidth, Math.abs(this.velX));
+                };
+
+                const stop = () => {
+                    document.onmousemove = null;
+                    document.onmouseup = null;
+                    this.activeWin.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                    this.activeWin.style.transform = `rotateY(0deg) rotateX(0deg) translateZ(0px)`;
+                };
+
+                document.onmousemove = move;
+                document.onmouseup = stop;
+            }
+        };
+
+        const Shell = {
+            run(input) {
+                const out = document.getElementById('output');
+                const val = input.value.trim().toLowerCase();
+                out.innerHTML += `<div class="text-[var(--accent)]">> ${input.value}</div>`;
+                input.value = "";
+
+                if(val === 'telemetry') out.innerHTML += `<div>PINGING ISS... DATA_SYNCED.</div>`;
+                else if(val === 'clear') out.innerHTML = "";
+                else out.innerHTML += `<div class="opacity-50">Unknown sector. Type 'telemetry' for orbital lock.</div>`;
+            }
+        };
+
+        const UI = {
+            open(id) { document.getElementById(id).classList.add('active'); },
+            close(id) { document.getElementById(id).classList.remove('active'); }
+        };
+
+        // SATELLITE TELEMETRY LINK
+        async function fetchISS() {
+            try {
+                const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+                const data = await res.json();
+                document.getElementById('sat-lat').innerText = `LAT: ${data.latitude.toFixed(4)}`;
+                document.getElementById('sat-lng').innerText = `LNG: ${data.longitude.toFixed(4)}`;
+                document.getElementById('sat-vel').innerText = `VEL: ${data.velocity.toFixed(0)} km/h`;
+            } catch(e) {}
+        }
+        setInterval(fetchISS, 5000);
+
+        // BACKGROUND SHADER SIMULATION
+        function initShader() {
+            const canvas = document.getElementById('shader-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            function draw(time) {
+                const step = time * 0.001;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for(let i=0; i<3; i++) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${0.1 / (i+1)})`;
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(0, canvas.height/2 + Math.sin(step + i) * 100);
+                    ctx.bezierCurveTo(
+                        canvas.width/3, canvas.height/2 + Math.cos(step) * 200,
+                        canvas.width/1.5, canvas.height/2 - Math.sin(step) * 200,
+                        canvas.width, canvas.height/2 + Math.cos(step + i) * 100
+                    );
+                    ctx.stroke();
+                }
+                requestAnimationFrame(draw);
+            }
+            draw(0);
+        }
+
+        window.onload = () => {
+            initShader();
+            UI.open('win-term');
+            fetchISS();
+        };
     </script>
 </body>
 </html>
