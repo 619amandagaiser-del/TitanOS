@@ -5,24 +5,18 @@
     <title>Zenith OS | Media Master Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <script src="https://accounts.google.com/gsi/client" async defer onerror="alert('Google Identity Script failed to load. Check your internet or ad-blocker.')"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
     
     <style>
         :root { --neon: #ae54ff; --bg: #050505; }
         body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; }
-        
         #desktop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1a0033 0%, #050505 100%); z-index: 1; display: none; }
-        
-        /* The Auth Screen (The only thing visible at start) */
         #auth-gate { position: fixed; inset: 0; z-index: 99999; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        
-        .window { position: absolute; background: rgba(13, 13, 20, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden; z-index: 100; }
+        .window { position: absolute; background: rgba(13, 13, 20, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden; }
         .win-bar { height: 35px; background: rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 12px; cursor: grab; }
-        
-        #dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 10px; display: flex; gap: 10px; z-index: 999; }
+        #dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 10px; display: flex; gap: 10px; z-index: 999; }
         .dock-item { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border-radius: 10px; }
-        .dock-item:hover { background: rgba(138, 43, 226, 0.3); transform: translateY(-5px); }
     </style>
 </head>
 <body>
@@ -33,12 +27,13 @@
         
         <div id="g_id_onload"
              data-client_id="106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com"
-             data-callback="onSignIn">
+             data-callback="onSignIn"
+             data-auto_prompt="false">
         </div>
-        <div class="g_id_signin" data-type="standard"></div>
+        <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
 
-        <button onclick="Kernel.boot()" class="mt-8 text-[9px] text-gray-500 border border-gray-800 px-4 py-2 rounded-full hover:text-white transition">
-            Bypass Authentication (Debug Mode)
+        <button id="manual-btn" onclick="Kernel.boot()" class="mt-8 text-[9px] text-gray-500 border border-gray-800 px-4 py-2 rounded-full hover:bg-white hover:text-black transition opacity-50">
+            ENTER OS MANUALLY
         </button>
     </div>
 
@@ -50,24 +45,23 @@
     </div>
 
     <script>
-        const CONFIG = {
-            clientId: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
-            apiKey: 'AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng',
-            appId: '106130595767'
-        };
-
-        // This function triggers when Google Login finishes
-        function onSignIn(response) {
-            console.log("Logged in!");
+        // GLOBAL CALLBACK (Must be outside the Kernel object to work)
+        window.onSignIn = function(response) {
+            console.log("Google Auth Success");
+            document.getElementById('manual-btn').classList.remove('opacity-50');
+            document.getElementById('manual-btn').innerText = "ACCESS GRANTED: ENTER OS";
             Kernel.boot();
+            
             // Get Drive Token
-            const client = google.accounts.oauth2.initTokenClient({
-                client_id: CONFIG.clientId,
-                scope: 'https://www.googleapis.com/auth/drive.readonly',
-                callback: (t) => { Kernel.token = t.access_token; }
-            });
-            client.requestAccessToken({prompt: ''});
-        }
+            try {
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
+                    scope: 'https://www.googleapis.com/auth/drive.readonly',
+                    callback: (t) => { Kernel.token = t.access_token; }
+                });
+                client.requestAccessToken({prompt: ''});
+            } catch(e) { console.error("Drive token failed", e); }
+        };
 
         const Kernel = {
             z: 100,
@@ -75,9 +69,11 @@
             playlist: [],
 
             boot() {
-                document.getElementById('auth-gate').style.display = 'none';
-                document.getElementById('desktop').style.display = 'block';
-                // Try to load GAPI for Picker
+                document.getElementById('auth-gate').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('auth-gate').style.display = 'none';
+                    document.getElementById('desktop').style.display = 'block';
+                }, 500);
                 try { gapi.load('picker'); } catch(e) {}
             },
 
@@ -88,7 +84,7 @@
                 win.id = 'win-' + type;
                 win.style.width = type === 'tv' ? '850px' : '450px';
                 win.style.height = '500px';
-                win.style.top = '50px'; win.style.left = '50px';
+                win.style.top = '100px'; win.style.left = '100px';
                 win.style.zIndex = ++this.z;
 
                 let html = (type === 'files') ? this.getFilesUI() : this.getTVUI();
@@ -123,13 +119,14 @@
             },
 
             pick(child) {
+                if(!this.token) { alert("Drive not connected. Try logging in again."); return; }
                 const name = child.document.getElementById('s').value || "Series";
                 const picker = new google.picker.PickerBuilder()
-                    .setAppId(CONFIG.appId).setOAuthToken(this.token).setDeveloperKey(CONFIG.apiKey)
+                    .setAppId('106130595767').setOAuthToken(this.token).setDeveloperKey('AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng')
                     .addView(new google.picker.DocsView(google.picker.ViewId.FOLDERS))
                     .setCallback(async (data) => {
                         if (data.action == google.picker.Action.PICKED) {
-                            const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${data.docs[0].id}'+in+parents&fields=files(id,name,mimeType)&key=${CONFIG.apiKey}`, {
+                            const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${data.docs[0].id}'+in+parents&fields=files(id,name,mimeType)&key=AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng`, {
                                 headers: { 'Authorization': 'Bearer ' + this.token }
                             });
                             const json = await res.json();
@@ -150,7 +147,7 @@
                 this.playlist.forEach((ep, i) => {
                     const div = doc.createElement('div');
                     div.className = "min-w-[120px] bg-white/5 p-2 rounded border border-white/10 cursor-pointer text-[10px]";
-                    div.innerHTML = `<b>EP ${i+1}</b><br><span class='opacity-50'>${ep.name}</span>`;
+                    div.innerHTML = `<b>EP ${i+1}</b><br><span class='opacity-50 truncate'>${ep.name}</span>`;
                     div.onclick = () => {
                         doc.getElementById('msg').style.display = 'none';
                         doc.getElementById('vid').src = `https://drive.google.com/file/d/${ep.id}/preview`;
