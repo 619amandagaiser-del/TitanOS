@@ -1,282 +1,152 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Starship OS</title>
+    <title>Zenith OS | Starship</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* STARSHIP THEME INTEGRATION */
-        :root { 
-            --bg: #050505; 
-            --accent: #8a2be2; /* Matches your TV.html */
-            --win-bg: #120032; /* Matches your Start.html */
-            --text: #eee;
+        :root {
+            --accent: #8a2be2;
+            --neon: #ae54ff;
         }
-        body { 
-            background: radial-gradient(circle at top left, #120032 0%, #000000 90%); /* Your Starship Gradient */
-            color: var(--text); 
-            font-family: 'Inter', sans-serif; 
-            overflow: hidden; 
-            height: 100vh; 
-            user-select: none; 
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top left, #120032 0%, #050505 90%);
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
         }
 
-        /* DYNAMIC WINDOW SYSTEM */
-        #desktop { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-        .window { 
-            position: absolute; 
-            background: #0d0d14; 
-            border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border */
-            border-radius: 12px; 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 0 40px rgba(138, 43, 226, 0.1); 
-            overflow: hidden; 
-            min-width: 320px; 
-            min-height: 200px; 
-            pointer-events: auto;
-            transition: opacity 0.2s, transform 0.2s;
-        }
-        .win-bar { 
-            height: 36px; 
-            background: linear-gradient(90deg, #1a1f4a, #0b0f2e); /* Matches Profile.html */
-            display: flex; 
-            align-items: center; 
-            padding: 0 12px; 
-            cursor: grab; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .win-bar:active { cursor: grabbing; }
-        .win-title { font-size: 11px; font-weight: 900; letter-spacing: 1px; color: #a78bfa; flex-grow: 1; text-transform: uppercase; }
-        .win-controls { display: flex; gap: 8px; }
-        .win-btn { width: 10px; height: 10px; border-radius: 50%; cursor: pointer; opacity: 0.8; }
-        .win-btn:hover { opacity: 1; }
-        .close-btn { background: #ef4444; } .max-btn { background: #f59e0b; } .min-btn { background: #10b981; }
-        
-        .win-content { flex-grow: 1; position: relative; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; background: #0b0f2e; }
+        /* Desktop Area */
+        #desktop { position: absolute; inset: 0; z-index: 1; }
 
-        /* DRAG SHIELD (Fixes the "Broken UI" when dragging over iframes) */
-        .drag-shield { position: absolute; inset: 0; z-index: 50; display: none; }
-        .window.dragging .drag-shield { display: block; }
-
-        /* THE DOCK */
-        #dock { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            height: 64px; 
-            background: rgba(18, 0, 50, 0.7); 
-            backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 24px; 
-            display: flex; align-items: center; padding: 0 20px; gap: 10px; 
-            z-index: 9000; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .dock-icon { 
-            width: 48px; height: 48px; 
-            border-radius: 14px; 
-            display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            position: relative;
-        }
-        .dock-icon:hover { transform: translateY(-10px) scale(1.1); background: rgba(255,255,255,0.1); }
-        .dock-icon i { font-size: 28px; color: #fff; }
-        .dock-tooltip { 
-            position: absolute; top: -35px; background: #000; color: white; 
-            padding: 4px 8px; border-radius: 6px; font-size: 10px; opacity: 0; 
-            pointer-events: none; transition: 0.2s; white-space: nowrap;
-        }
-        .dock-icon:hover .dock-tooltip { opacity: 1; top: -45px; }
-
-        /* APP DRAWER (The 51 Features) */
-        #app-drawer { 
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); 
-            width: 700px; height: 500px; 
-            background: rgba(13, 13, 20, 0.95); 
-            border-radius: 20px; 
+        /* Window System */
+        .window {
+            position: absolute;
+            background: #0d0d14;
             border: 1px solid rgba(138, 43, 226, 0.3);
-            display: grid; grid-template-columns: repeat(6, 1fr); 
-            padding: 30px; gap: 15px; 
-            z-index: 8000; opacity: 0; pointer-events: none; transition: 0.2s;
+            border-radius: 12px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            overflow: hidden; z-index: 10;
         }
-        #app-drawer.active { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
-        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; padding: 10px; border-radius: 8px; }
-        .drawer-item:hover { background: rgba(255,255,255,0.1); }
-        
-        /* PANIC */
-        #panic-layer { position: fixed; inset: 0; background: #fff; z-index: 999999; display: none; }
+        .win-bar {
+            height: 38px; background: linear-gradient(90deg, #1a0033, #0d0d14);
+            display: flex; align-items: center; padding: 0 15px; cursor: grab;
+        }
+        .win-title { font-size: 11px; font-weight: 800; color: var(--neon); flex-grow: 1; text-transform: uppercase; }
+        .win-content { flex-grow: 1; background: #000; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* The Dock */
+        #dock {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(18, 0, 50, 0.6); backdrop-filter: blur(20px);
+            border: 1px solid rgba(174, 84, 255, 0.2);
+            padding: 10px 20px; border-radius: 25px; display: flex; gap: 15px; z-index: 9999;
+        }
+        .dock-item {
+            width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s;
+        }
+        .dock-item:hover { transform: translateY(-10px); }
+        .dock-item i { font-size: 28px; color: #fff; }
+
+        /* Panic Shield */
+        #panic { position: fixed; inset: 0; background: #fff; z-index: 100000; display: none; }
     </style>
 </head>
 <body onload="OS.boot()">
 
-    <div id="panic-layer"><iframe src="https://classroom.google.com" style="width:100%;height:100%;border:none;"></iframe></div>
-
+    <div id="panic"><iframe src="https://classroom.google.com" style="width:100%; height:100%;"></iframe></div>
     <div id="desktop"></div>
 
     <div id="dock">
-        <div class="dock-icon" onclick="OS.toggleDrawer()">
-            <i class="material-icons-round" style="color:#fff;">grid_view</i>
-            <span class="dock-tooltip">All Apps</span>
-        </div>
-        <div style="width:1px; height:24px; background:rgba(255,255,255,0.2); margin:0 5px;"></div>
-        
-        <div class="dock-icon" onclick="OS.open('home')">
-            <i class="material-icons-round" style="color:#8a2be2;">rocket_launch</i>
-            <span class="dock-tooltip">Starship Dashboard</span>
-        </div>
-        <div class="dock-icon" onclick="OS.open('tv')">
-            <i class="material-icons-round" style="color:#c084fc;">live_tv</i>
-            <span class="dock-tooltip">Star TV</span>
-        </div>
-        <div class="dock-icon" onclick="OS.open('profile')">
-            <i class="material-icons-round" style="color:#4ade80;">account_circle</i>
-            <span class="dock-tooltip">Profile</span>
-        </div>
-        
-        <div style="width:1px; height:24px; background:rgba(255,255,255,0.2); margin:0 5px;"></div>
-        
-        <div class="dock-icon" onclick="OS.open('discord')">
-            <i class="material-icons-round" style="color:#5865F2;">discord</i>
-            <span class="dock-tooltip">Discord</span>
-        </div>
-        <div class="dock-icon" onclick="OS.open('browser')">
-            <i class="material-icons-round" style="color:#3b82f6;">public</i>
-            <span class="dock-tooltip">Tunnel</span>
-        </div>
+        <div class="dock-item" onclick="OS.open('home')"><i class="material-icons-round">rocket_launch</i></div>
+        <div class="dock-item" onclick="OS.open('tv')"><i class="material-icons-round">live_tv</i></div>
+        <div class="dock-item" onclick="OS.open('ai')"><i class="material-icons-round">psychology</i></div>
+        <div class="dock-item" onclick="OS.open('profile')"><i class="material-icons-round">account_circle</i></div>
+        <div style="width:1px; height:30px; background:rgba(255,255,255,0.1); align-self:center;"></div>
+        <div class="dock-item" onclick="OS.authDrive()"><i class="material-icons-round" style="color:#4285F4">cloud_done</i></div>
     </div>
 
-    <div id="app-drawer">
-        </div>
-
-    <template id="win-temp">
-        <div class="window">
-            <div class="win-bar">
-                <div class="win-title">Title</div>
-                <div class="win-controls">
-                    <div class="win-btn min-btn"></div>
-                    <div class="win-btn max-btn"></div>
-                    <div class="win-btn close-btn"></div>
-                </div>
-            </div>
-            <div class="win-content">
-                <div class="drag-shield"></div>
-            </div>
-        </div>
-    </template>
-
+    <script src="https://accounts.google.com/gsi/client"></script>
     <script>
         const OS = {
-            zIndex: 100,
-            // THIS MAPS YOUR FILES TO THE OS
+            z: 100,
+            DRIVE_ACCESS_TOKEN: null,
+            CONFIG: {
+                clientId: '106130595767-2ai0d8mac2ard8q2ngthuuh5pahoutuv.apps.googleusercontent.com',
+                scopes: 'https://www.googleapis.com/auth/drive.file'
+            },
+
             apps: {
-                'home': { title: 'Starship Dashboard', url: 'start.html', icon: 'rocket_launch', color: '#8a2be2' },
-                'tv': { title: 'Star TV', url: 'tv.html', icon: 'live_tv', color: '#c084fc' },
-                'profile': { title: 'User Profile', url: 'profile.html', icon: 'account_circle', color: '#4ade80' },
-                
-                // EXTRAS
-                'discord': { title: 'Discord', url: 'https://discord.com/app', icon: 'discord', color: '#5865F2' },
-                'browser': { title: 'Titan Tunnel', url: 'https://www.google.com/search?igu=1', icon: 'public', color: '#3b82f6' },
-                'roblox': { title: 'Roblox Cloud', url: 'https://www.easyfun.gg/embed/roblox.html?start=1', icon: 'sports_esports', color: '#ef4444' },
-                'spotify': { title: 'Spotify', url: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M', icon: 'library_music', color: '#1db954' },
-                'calc': { title: 'Calculator', type: 'widget', code: 'calc', icon: 'calculate', color: '#f59e0b' },
-                'todo': { title: 'Tasks', type: 'widget', code: 'todo', icon: 'check_circle', color: '#06b6d4' }
+                'home': { title: 'Dashboard', url: 'start.html', w: 900, h: 600 },
+                'tv': { title: 'Star TV', url: 'tv.html', w: 1000, h: 700 },
+                'profile': { title: 'Profile', url: 'profile.html', w: 600, h: 750 },
+                'ai': { title: 'Orbit AI', url: 'ai.html', w: 500, h: 700 }
             },
 
             boot() {
-                this.renderDrawer();
-                document.addEventListener('keydown', e => { 
-                    if(e.key === '`') document.getElementById('panic-layer').style.display = 'block'; 
-                });
+                this.open('home');
+                window.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display='block'; });
                 
-                // Auto-launch your Dashboard on start
-                setTimeout(() => this.open('home'), 500);
-            },
-
-            renderDrawer() {
-                const d = document.getElementById('app-drawer');
-                Object.keys(this.apps).forEach(k => {
-                    const app = this.apps[k];
-                    d.innerHTML += `
-                        <div class="drawer-item" onclick="OS.open('${k}')">
-                            <i class="material-icons-round" style="font-size:32px; color:${app.color}">${app.icon}</i>
-                            <span style="font-size:10px; color:#aaa; font-weight:bold;">${app.title}</span>
-                        </div>`;
+                // Initialize Google Auth
+                this.tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: this.CONFIG.clientId,
+                    scope: this.CONFIG.scopes,
+                    callback: (tokenResponse) => {
+                        this.DRIVE_ACCESS_TOKEN = tokenResponse.access_token;
+                        alert("Starship connected to Google Drive.");
+                    },
                 });
             },
 
-            toggleDrawer() {
-                document.getElementById('app-drawer').classList.toggle('active');
+            authDrive() {
+                this.tokenClient.requestAccessToken({prompt: 'consent'});
             },
 
             open(id) {
-                document.getElementById('app-drawer').classList.remove('active');
                 const app = this.apps[id];
-                const temp = document.getElementById('win-temp').content.cloneNode(true);
-                const win = temp.querySelector('.window');
-                
-                // WINDOW SETUP
-                win.id = `win-${Date.now()}`;
-                win.style.zIndex = ++this.zIndex;
-                win.style.width = '800px'; 
-                win.style.height = '600px';
-                win.style.top = (10 + Math.random()*5) + '%';
-                win.style.left = (15 + Math.random()*5) + '%';
-                
-                win.querySelector('.win-title').innerText = app.title;
-                
-                // CONTENT LOADING
-                const content = win.querySelector('.win-content');
-                if(app.type === 'widget') {
-                    content.innerHTML += this.getWidget(app.code);
-                } else {
-                    // This loads your uploaded HTML files
-                    content.innerHTML += `<iframe src="${app.url}"></iframe>`;
-                }
+                const win = document.createElement('div');
+                win.className = 'window';
+                win.style.width = app.w + 'px'; win.style.height = app.h + 'px';
+                win.style.top = '10%'; win.style.left = '15%';
+                win.style.zIndex = ++this.z;
 
-                // CONTROLS
-                win.querySelector('.close-btn').onclick = () => win.remove();
-                win.querySelector('.max-btn').onclick = () => {
-                    win.style.top = '0'; win.style.left = '0'; win.style.width = '100%'; win.style.height = '100%';
-                };
+                win.innerHTML = `
+                    <div class="win-bar">
+                        <div class="win-title">${app.title}</div>
+                        <div style="display:flex; gap:8px;">
+                            <div style="width:12px; height:12px; border-radius:50%; background:#ffbd2e; cursor:pointer;"></div>
+                            <div onclick="this.closest('.window').remove()" style="width:12px; height:12px; border-radius:50%; background:#ff5f56; cursor:pointer;"></div>
+                        </div>
+                    </div>
+                    <div class="win-content"><iframe src="${app.url}"></iframe></div>
+                `;
                 
-                // FOCUS & DRAG
-                win.onmousedown = () => { win.style.zIndex = ++this.zIndex; };
-                this.makeDraggable(win);
+                win.onmousedown = () => win.style.zIndex = ++this.z;
+                this.drag(win);
                 document.getElementById('desktop').appendChild(win);
             },
 
-            makeDraggable(el) {
+            drag(el) {
                 const bar = el.querySelector('.win-bar');
-                let isDrag = false, startX, startY, initX, initY;
-                
+                let x=0, y=0, x1=0, y1=0;
                 bar.onmousedown = (e) => {
-                    isDrag = true;
-                    el.classList.add('dragging'); // Shield activates to cover iframes
-                    el.style.zIndex = ++this.zIndex;
-                    startX = e.clientX; startY = e.clientY;
-                    initX = el.offsetLeft; initY = el.offsetTop;
-                    
+                    x1=e.clientX; y1=e.clientY;
+                    document.onmouseup = () => { document.onmousemove = null; };
                     document.onmousemove = (e) => {
-                        if(!isDrag) return;
-                        el.style.left = (initX + e.clientX - startX) + 'px';
-                        el.style.top = (initY + e.clientY - startY) + 'px';
-                    };
-                    
-                    document.onmouseup = () => {
-                        isDrag = false;
-                        el.classList.remove('dragging'); // Shield deactivates
-                        document.onmousemove = null;
-                        document.onmouseup = null;
+                        x=x1-e.clientX; y=y1-e.clientY;
+                        x1=e.clientX; y1=e.clientY;
+                        el.style.top = (el.offsetTop - y) + "px";
+                        el.style.left = (el.offsetLeft - x) + "px";
                     };
                 };
-            },
-
-            getWidget(code) {
-                if(code === 'calc') return `<div style="padding:20px; color:white; text-align:center;">Simple Calculator Placeholder</div>`;
-                if(code === 'todo') return `<div style="padding:20px; color:white;">Task List Placeholder</div>`;
             }
         };
     </script>
