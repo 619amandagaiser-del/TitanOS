@@ -2,194 +2,162 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zenith OS | All-In-One</title>
+    <title>Zenith OS | Media Master Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <script src="https://accounts.google.com/gsi/client"></script>
-    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer onerror="alert('Google Identity Script failed to load. Check your internet or ad-blocker.')"></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+    
     <style>
         :root { --neon: #ae54ff; --bg: #050505; }
         body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; }
-        .overlay { position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
-        #desktop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1a0033 0%, #050505 100%); z-index: 1; }
         
-        /* Window Styling */
-        .window { position: absolute; background: rgba(13, 13, 20, 0.98); backdrop-filter: blur(25px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 18px; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.8); overflow: hidden; }
-        .win-bar { height: 40px; background: rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 15px; cursor: grab; }
-        .win-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; flex-grow: 1; color: var(--neon); }
-        .win-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; margin-left: 8px; }
-
-        /* Dock Styling */
-        #dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 10px 20px; display: flex; gap: 15px; z-index: 9999; }
-        .dock-item { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border-radius: 15px; background: rgba(255,255,255,0.02); }
-        .dock-item:hover { transform: translateY(-10px); background: rgba(138, 43, 226, 0.2); }
+        #desktop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1a0033 0%, #050505 100%); z-index: 1; display: none; }
+        
+        /* The Auth Screen (The only thing visible at start) */
+        #auth-gate { position: fixed; inset: 0; z-index: 99999; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .window { position: absolute; background: rgba(13, 13, 20, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden; z-index: 100; }
+        .win-bar { height: 35px; background: rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 12px; cursor: grab; }
+        
+        #dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 10px; display: flex; gap: 10px; z-index: 999; }
+        .dock-item { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border-radius: 10px; }
+        .dock-item:hover { background: rgba(138, 43, 226, 0.3); transform: translateY(-5px); }
     </style>
 </head>
-<body onload="Kernel.init()">
+<body>
 
-    <div id="login-screen" class="overlay">
-        <i class="material-icons-round text-6xl mb-6 text-purple-500">space_dashboard</i>
-        <h1 class="tracking-[10px] text-sm mb-8">ZENITH MEDIA OS</h1>
-        <div id="google-login-btn" class="mb-4"></div>
-        <button onclick="Kernel.forceBoot()" class="text-[10px] text-gray-600 hover:text-purple-400 uppercase tracking-widest transition">Skip to Offline Mode (Debug)</button>
+    <div id="auth-gate">
+        <h1 class="text-2xl font-black tracking-[15px] mb-2 text-white">ZENITH</h1>
+        <p class="text-[10px] text-purple-500 tracking-[5px] uppercase mb-10">Satellite Media OS</p>
+        
+        <div id="g_id_onload"
+             data-client_id="106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com"
+             data-callback="onSignIn">
+        </div>
+        <div class="g_id_signin" data-type="standard"></div>
+
+        <button onclick="Kernel.boot()" class="mt-8 text-[9px] text-gray-500 border border-gray-800 px-4 py-2 rounded-full hover:text-white transition">
+            Bypass Authentication (Debug Mode)
+        </button>
     </div>
 
-    <div id="desktop"></div>
-
-    <div id="dock">
-        <div class="dock-item" onclick="Kernel.open('files')" title="Explorer"><i class="material-icons-round text-yellow-400">folder_open</i></div>
-        <div class="dock-item" onclick="Kernel.open('tv')" title="Cinema"><i class="material-icons-round text-blue-400">play_circle</i></div>
+    <div id="desktop">
+        <div id="dock">
+            <div class="dock-item" onclick="Kernel.open('files')"><i class="material-icons-round text-yellow-400">folder</i></div>
+            <div class="dock-item" onclick="Kernel.open('tv')"><i class="material-icons-round text-blue-400">movie</i></div>
+        </div>
     </div>
 
     <script>
-        window.DRIVE_CONFIG = {
+        const CONFIG = {
             clientId: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
             apiKey: 'AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng',
             appId: '106130595767'
         };
 
+        // This function triggers when Google Login finishes
+        function onSignIn(response) {
+            console.log("Logged in!");
+            Kernel.boot();
+            // Get Drive Token
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: CONFIG.clientId,
+                scope: 'https://www.googleapis.com/auth/drive.readonly',
+                callback: (t) => { Kernel.token = t.access_token; }
+            });
+            client.requestAccessToken({prompt: ''});
+        }
+
         const Kernel = {
             z: 100,
             token: null,
-            playlist: [], 
+            playlist: [],
 
-            init() {
-                // Initialize Google Sign-In
-                try {
-                    google.accounts.id.initialize({ 
-                        client_id: window.DRIVE_CONFIG.clientId, 
-                        callback: (res) => this.handleAuth(res) 
-                    });
-                    google.accounts.id.renderButton(document.getElementById("google-login-btn"), { theme: "dark", shape: "pill" });
-                    
-                    // Load GAPI for the Picker
-                    gapi.load('client:picker', () => {
-                        gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
-                    });
-                } catch(e) { console.error("Google blocked. Check browser privacy settings."); }
+            boot() {
+                document.getElementById('auth-gate').style.display = 'none';
+                document.getElementById('desktop').style.display = 'block';
+                // Try to load GAPI for Picker
+                try { gapi.load('picker'); } catch(e) {}
             },
-
-            handleAuth(res) {
-                document.getElementById('login-screen').style.display = 'none';
-                google.accounts.oauth2.initTokenClient({
-                    client_id: window.DRIVE_CONFIG.clientId,
-                    scope: 'https://www.googleapis.com/auth/drive.readonly',
-                    callback: (t) => { 
-                        this.token = t.access_token; 
-                        this.open('files'); 
-                    }
-                }).requestAccessToken();
-            },
-
-            forceBoot() { document.getElementById('login-screen').style.display = 'none'; },
 
             open(type) {
                 if(document.getElementById('win-' + type)) return;
-
                 const win = document.createElement('div');
                 win.className = 'window';
                 win.id = 'win-' + type;
-                win.style.width = type === 'tv' ? '900px' : '500px';
-                win.style.height = '550px';
-                win.style.top = '60px'; win.style.left = '100px';
+                win.style.width = type === 'tv' ? '850px' : '450px';
+                win.style.height = '500px';
+                win.style.top = '50px'; win.style.left = '50px';
                 win.style.zIndex = ++this.z;
 
-                let content = (type === 'files') ? this.getFilesHTML() : this.getTVHTML();
+                let html = (type === 'files') ? this.getFilesUI() : this.getTVUI();
 
                 win.innerHTML = `
-                    <div class="win-bar">
-                        <div class="win-title">${type.toUpperCase()}</div>
-                        <div class="win-dot" style="background:#ff5f56;" onclick="this.closest('.window').remove()"></div>
-                    </div>
-                    <div style="flex-grow:1; background:#000;">
-                        <iframe id="frame-${type}" srcdoc="${content.replace(/"/g, '&quot;')}" style="width:100%; height:100%; border:none;"></iframe>
-                    </div>
+                    <div class="win-bar"><span class="flex-grow text-[10px] font-bold tracking-widest">${type.toUpperCase()}</span>
+                    <span onclick="this.closest('.window').remove()" class="cursor-pointer text-red-500 font-bold">✕</span></div>
+                    <div style="flex-grow:1;"><iframe id="frame-${type}" srcdoc="${html.replace(/"/g, '&quot;')}" style="width:100%; height:100%; border:none;"></iframe></div>
                 `;
-                this.drag(win);
                 document.getElementById('desktop').appendChild(win);
-                if(type === 'tv') setTimeout(() => this.syncCinema(), 500);
+                if(type === 'tv') setTimeout(() => this.sync(), 500);
             },
 
-            getFilesHTML() {
+            getFilesUI() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
-                <body class="bg-[#0d0d14] text-white p-6 font-sans">
-                    <div class="border-b border-white/10 pb-4 mb-4">
-                        <input id="show" placeholder="Show Name (e.g. Anime S1)" class="bg-white/5 p-3 w-full rounded mb-3 outline-none border border-white/10 text-sm">
-                        <button onclick="parent.Kernel.pickFolder(window)" class="w-full bg-purple-600 p-3 rounded font-black text-[10px] tracking-widest hover:bg-purple-500 transition">MOUNT SERIES FOLDER</button>
-                    </div>
-                    <div id="status" class="text-[10px] uppercase text-purple-400 font-bold mb-4"></div>
-                    <div id="file-list" class="space-y-1"></div>
+                <body class="bg-[#0d0d14] text-white p-4 font-sans text-sm">
+                    <input id="s" placeholder="Series Name" class="w-full bg-white/5 p-2 rounded border border-white/10 mb-2">
+                    <button onclick="parent.Kernel.pick(window)" class="w-full bg-purple-600 p-2 rounded font-bold uppercase text-[10px]">Select Folder</button>
+                    <div id="out" class="mt-4 space-y-1"></div>
                 </body></html>`;
             },
 
-            getTVHTML() {
+            getTVUI() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
                 <body class="bg-black text-white h-screen flex flex-col overflow-hidden">
-                    <div class="flex-grow bg-[#050505] flex items-center justify-center relative">
-                        <iframe id="player" class="w-full h-full" style="display:none;" allow="autoplay; fullscreen"></iframe>
-                        <div id="no-vid" class="text-gray-800 font-black text-4xl tracking-tighter">ZENITH CINEMA</div>
+                    <div class="flex-grow bg-[#050505] flex items-center justify-center">
+                        <iframe id="vid" class="w-full h-full" style="display:none;" allow="autoplay; fullscreen"></iframe>
+                        <div id="msg" class="text-gray-800 font-bold">NO MEDIA LOADED</div>
                     </div>
-                    <div id="list" class="h-32 bg-[#0d0d14] p-4 flex gap-4 overflow-x-auto border-t border-white/5"></div>
+                    <div id="list" class="h-24 bg-[#0d0d14] p-2 flex gap-2 overflow-x-auto"></div>
                 </body></html>`;
             },
 
-            pickFolder(childWin) {
-                const name = childWin.document.getElementById('show').value || "Series";
-                new google.picker.PickerBuilder()
-                    .setAppId(window.DRIVE_CONFIG.appId)
-                    .setOAuthToken(this.token)
-                    .setDeveloperKey(window.DRIVE_CONFIG.apiKey)
+            pick(child) {
+                const name = child.document.getElementById('s').value || "Series";
+                const picker = new google.picker.PickerBuilder()
+                    .setAppId(CONFIG.appId).setOAuthToken(this.token).setDeveloperKey(CONFIG.apiKey)
                     .addView(new google.picker.DocsView(google.picker.ViewId.FOLDERS))
                     .setCallback(async (data) => {
                         if (data.action == google.picker.Action.PICKED) {
-                            const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${data.docs[0].id}'+in+parents&fields=files(id,name,mimeType)&key=${window.DRIVE_CONFIG.apiKey}`, {
+                            const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${data.docs[0].id}'+in+parents&fields=files(id,name,mimeType)&key=${CONFIG.apiKey}`, {
                                 headers: { 'Authorization': 'Bearer ' + this.token }
                             });
-                            const files = await res.json();
-                            this.playlist = files.files.filter(f => f.mimeType.includes('video'))
+                            const json = await res.json();
+                            this.playlist = json.files.filter(f => f.mimeType.includes('video'))
                                 .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}))
                                 .map(f => ({ id: f.id, name: f.name, show: name }));
-                            
-                            childWin.document.getElementById('status').innerText = "✓ " + this.playlist.length + " EPISODES FOUND";
-                            this.syncCinema();
+                            child.document.getElementById('out').innerHTML = `<p class='text-green-500'>${this.playlist.length} Episodes Ready</p>`;
+                            this.sync();
                         }
-                    }).build().setVisible(true);
+                    }).build();
+                picker.setVisible(true);
             },
 
-            syncCinema() {
-                const frame = document.getElementById('frame-tv');
-                if(!frame) return;
-                const win = frame.contentWindow;
-                const list = win.document.getElementById('list');
-                list.innerHTML = "";
-                
+            sync() {
+                const f = document.getElementById('frame-tv'); if(!f) return;
+                const doc = f.contentWindow.document;
+                const list = doc.getElementById('list'); list.innerHTML = "";
                 this.playlist.forEach((ep, i) => {
-                    const card = win.document.createElement('div');
-                    card.className = "min-w-[140px] bg-white/5 border border-white/10 p-3 rounded cursor-pointer hover:bg-purple-600/20";
-                    card.innerHTML = `<div class='text-[9px] text-purple-400 font-black'>EP ${i+1}</div><div class='text-[11px] truncate mt-1'>${ep.name}</div>`;
-                    card.onclick = () => {
-                        win.document.getElementById('no-vid').style.display = 'none';
-                        const p = win.document.getElementById('player');
-                        p.src = `https://drive.google.com/file/d/${ep.id}/preview`;
-                        p.style.display = "block";
+                    const div = doc.createElement('div');
+                    div.className = "min-w-[120px] bg-white/5 p-2 rounded border border-white/10 cursor-pointer text-[10px]";
+                    div.innerHTML = `<b>EP ${i+1}</b><br><span class='opacity-50'>${ep.name}</span>`;
+                    div.onclick = () => {
+                        doc.getElementById('msg').style.display = 'none';
+                        doc.getElementById('vid').src = `https://drive.google.com/file/d/${ep.id}/preview`;
+                        doc.getElementById('vid').style.display = 'block';
                     };
-                    list.appendChild(card);
+                    list.appendChild(div);
                 });
-            },
-
-            drag(el) {
-                const bar = el.querySelector('.win-bar');
-                let x=0, y=0, x1=0, y1=0;
-                bar.onmousedown = (e) => {
-                    x1=e.clientX; y1=e.clientY;
-                    document.onmouseup = () => { document.onmousemove = null; };
-                    document.onmousemove = (e) => {
-                        x=x1-e.clientX; y=y1-e.clientY;
-                        x1=e.clientX; y1=e.clientY;
-                        el.style.top = (el.offsetTop - y) + "px";
-                        el.style.left = (el.offsetLeft - x) + "px";
-                    };
-                };
             }
         };
     </script>
