@@ -2,79 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zenith OS | Media Master Pro</title>
+    <title>Titan OS | 2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
     
     <style>
-        :root { --neon: #ae54ff; --bg: #050505; }
+        :root { --neon: #00f2ff; --bg: #030303; }
         body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; }
-        #desktop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1a0033 0%, #050505 100%); z-index: 1; display: none; }
-        #auth-gate { position: fixed; inset: 0; z-index: 99999; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .window { position: absolute; background: rgba(13, 13, 20, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden; }
-        .win-bar { height: 35px; background: rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 12px; cursor: grab; }
-        #dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 10px; display: flex; gap: 10px; z-index: 999; }
-        .dock-item { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border-radius: 10px; }
+        #desktop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #001a1a 0%, #030303 100%); z-index: 1; display: none; }
+        #boot-loader { position: fixed; inset: 0; z-index: 99999; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .window { position: absolute; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+        .win-bar { height: 35px; background: rgba(255,255,255,0.03); display: flex; align-items: center; padding: 0 12px; cursor: grab; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        #dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 15px; display: flex; gap: 15px; z-index: 999; }
+        .dock-item { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border-radius: 12px; }
+        .dock-item:hover { background: rgba(0, 242, 255, 0.2); transform: translateY(-5px); }
     </style>
 </head>
 <body>
 
-    <div id="auth-gate">
-        <h1 class="text-2xl font-black tracking-[15px] mb-2 text-white">ZENITH</h1>
-        <p class="text-[10px] text-purple-500 tracking-[5px] uppercase mb-10">Satellite Media OS</p>
-        
-        <div id="g_id_onload"
-             data-client_id="106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com"
-             data-callback="onSignIn"
-             data-auto_prompt="false">
+    <div id="boot-loader">
+        <h1 class="text-4xl font-black tracking-[20px] mb-4 text-cyan-400">TITAN</h1>
+        <div class="w-48 h-1 bg-gray-900 rounded-full overflow-hidden mb-10">
+            <div id="progress" class="h-full bg-cyan-500 w-0 transition-all duration-700"></div>
         </div>
-        <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue"></div>
-
-        <button id="manual-btn" onclick="Kernel.boot()" class="mt-8 text-[9px] text-gray-500 border border-gray-800 px-4 py-2 rounded-full hover:bg-white hover:text-black transition opacity-50">
-            ENTER OS MANUALLY
-        </button>
+        <button onclick="Kernel.boot()" id="launch-btn" class="px-8 py-3 border border-cyan-500/50 rounded-full text-cyan-400 text-xs font-bold tracking-[3px] hover:bg-cyan-500 hover:text-black transition-all">LAUNCH TITAN OS</button>
     </div>
 
     <div id="desktop">
         <div id="dock">
-            <div class="dock-item" onclick="Kernel.open('files')"><i class="material-icons-round text-yellow-400">folder</i></div>
-            <div class="dock-item" onclick="Kernel.open('tv')"><i class="material-icons-round text-blue-400">movie</i></div>
+            <div onclick="Kernel.open('explorer')" class="dock-item" title="Cloud Explorer"><i class="material-icons-round text-yellow-400">folder_special</i></div>
+            <div onclick="Kernel.open('cinema')" class="dock-item" title="Titan Cinema"><i class="material-icons-round text-cyan-400">play_circle</i></div>
         </div>
     </div>
 
     <script>
-        // GLOBAL CALLBACK (Must be outside the Kernel object to work)
-        window.onSignIn = function(response) {
-            console.log("Google Auth Success");
-            document.getElementById('manual-btn').classList.remove('opacity-50');
-            document.getElementById('manual-btn').innerText = "ACCESS GRANTED: ENTER OS";
-            Kernel.boot();
-            
-            // Get Drive Token
-            try {
+        const Kernel = {
+            token: null,
+            playlist: [],
+            z: 100,
+
+            boot() {
+                const bar = document.getElementById('progress');
+                bar.style.width = "100%";
+                setTimeout(() => {
+                    document.getElementById('boot-loader').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('boot-loader').style.display = 'none';
+                        document.getElementById('desktop').style.display = 'block';
+                    }, 500);
+                }, 800);
+                
+                // Initialize Google Client
+                try {
+                    gapi.load('picker');
+                } catch(e) { console.warn("Google Picker blocked or offline."); }
+            },
+
+            // Google Auth Popup
+            async connectDrive() {
                 const client = google.accounts.oauth2.initTokenClient({
                     client_id: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
                     scope: 'https://www.googleapis.com/auth/drive.readonly',
-                    callback: (t) => { Kernel.token = t.access_token; }
+                    callback: (response) => {
+                        if (response.access_token) {
+                            this.token = response.access_token;
+                            alert("Titan successfully linked to Google Drive.");
+                        }
+                    },
                 });
-                client.requestAccessToken({prompt: ''});
-            } catch(e) { console.error("Drive token failed", e); }
-        };
-
-        const Kernel = {
-            z: 100,
-            token: null,
-            playlist: [],
-
-            boot() {
-                document.getElementById('auth-gate').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('auth-gate').style.display = 'none';
-                    document.getElementById('desktop').style.display = 'block';
-                }, 500);
-                try { gapi.load('picker'); } catch(e) {}
+                client.requestAccessToken();
             },
 
             open(type) {
@@ -82,45 +80,52 @@
                 const win = document.createElement('div');
                 win.className = 'window';
                 win.id = 'win-' + type;
-                win.style.width = type === 'tv' ? '850px' : '450px';
-                win.style.height = '500px';
-                win.style.top = '100px'; win.style.left = '100px';
+                win.style.width = type === 'cinema' ? '850px' : '400px';
+                win.style.height = '550px';
+                win.style.top = '10% '; win.style.left = '15%';
                 win.style.zIndex = ++this.z;
 
-                let html = (type === 'files') ? this.getFilesUI() : this.getTVUI();
+                let ui = (type === 'explorer') ? this.getExplorerUI() : this.getCinemaUI();
 
                 win.innerHTML = `
-                    <div class="win-bar"><span class="flex-grow text-[10px] font-bold tracking-widest">${type.toUpperCase()}</span>
-                    <span onclick="this.closest('.window').remove()" class="cursor-pointer text-red-500 font-bold">✕</span></div>
-                    <div style="flex-grow:1;"><iframe id="frame-${type}" srcdoc="${html.replace(/"/g, '&quot;')}" style="width:100%; height:100%; border:none;"></iframe></div>
+                    <div class="win-bar">
+                        <span class="flex-grow text-[9px] font-black tracking-widest text-cyan-400">${type.toUpperCase()} UNIT</span>
+                        <span onclick="this.closest('.window').remove()" class="cursor-pointer text-red-500">✕</span>
+                    </div>
+                    <div class="flex-grow overflow-hidden">
+                        <iframe id="frame-${type}" srcdoc="${ui.replace(/"/g, '&quot;')}" class="w-full h-full border-none"></iframe>
+                    </div>
                 `;
                 document.getElementById('desktop').appendChild(win);
-                if(type === 'tv') setTimeout(() => this.sync(), 500);
+                this.drag(win);
+                if(type === 'cinema') setTimeout(() => this.syncCinema(), 300);
             },
 
-            getFilesUI() {
+            getExplorerUI() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
-                <body class="bg-[#0d0d14] text-white p-4 font-sans text-sm">
-                    <input id="s" placeholder="Series Name" class="w-full bg-white/5 p-2 rounded border border-white/10 mb-2">
-                    <button onclick="parent.Kernel.pick(window)" class="w-full bg-purple-600 p-2 rounded font-bold uppercase text-[10px]">Select Folder</button>
-                    <div id="out" class="mt-4 space-y-1"></div>
+                <body class="bg-[#0a0a0f] text-white p-5 font-sans">
+                    <button onclick="parent.Kernel.connectDrive()" class="w-full bg-cyan-600 p-3 rounded-lg font-bold text-[10px] mb-4 hover:bg-cyan-400 text-black">1. CONNECT TO DRIVE</button>
+                    <input id="show-name" placeholder="Series Name" class="w-full bg-white/5 border border-white/10 p-3 rounded mb-4 text-xs">
+                    <button onclick="parent.Kernel.pickFolder(window)" class="w-full border border-cyan-500/30 p-3 rounded-lg font-bold text-[10px] hover:bg-cyan-900 transition">2. SCAN SHOW FOLDER</button>
+                    <div id="status" class="mt-6 text-[10px] text-cyan-500 font-mono">SYSTEM READY...</div>
                 </body></html>`;
             },
 
-            getTVUI() {
+            getCinemaUI() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
                 <body class="bg-black text-white h-screen flex flex-col overflow-hidden">
-                    <div class="flex-grow bg-[#050505] flex items-center justify-center">
-                        <iframe id="vid" class="w-full h-full" style="display:none;" allow="autoplay; fullscreen"></iframe>
-                        <div id="msg" class="text-gray-800 font-bold">NO MEDIA LOADED</div>
+                    <div class="flex-grow flex items-center justify-center relative">
+                        <iframe id="player" class="w-full h-full" style="display:none" allow="autoplay; fullscreen"></iframe>
+                        <div id="void" class="text-cyan-900 font-black text-3xl">TITAN CINEMA</div>
                     </div>
-                    <div id="list" class="h-24 bg-[#0d0d14] p-2 flex gap-2 overflow-x-auto"></div>
+                    <div id="playlist" class="h-28 bg-[#050505] p-3 flex gap-3 overflow-x-auto border-t border-cyan-500/10"></div>
                 </body></html>`;
             },
 
-            pick(child) {
-                if(!this.token) { alert("Drive not connected. Try logging in again."); return; }
-                const name = child.document.getElementById('s').value || "Series";
+            pickFolder(child) {
+                if(!this.token) { alert("Please connect to Drive first!"); return; }
+                const name = child.document.getElementById('show-name').value || "Series";
+                
                 const picker = new google.picker.PickerBuilder()
                     .setAppId('106130595767').setOAuthToken(this.token).setDeveloperKey('AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng')
                     .addView(new google.picker.DocsView(google.picker.ViewId.FOLDERS))
@@ -133,28 +138,45 @@
                             this.playlist = json.files.filter(f => f.mimeType.includes('video'))
                                 .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}))
                                 .map(f => ({ id: f.id, name: f.name, show: name }));
-                            child.document.getElementById('out').innerHTML = `<p class='text-green-500'>${this.playlist.length} Episodes Ready</p>`;
-                            this.sync();
+                            
+                            child.document.getElementById('status').innerText = "LOADED: " + this.playlist.length + " EPISODES";
+                            this.syncCinema();
                         }
                     }).build();
                 picker.setVisible(true);
             },
 
-            sync() {
-                const f = document.getElementById('frame-tv'); if(!f) return;
-                const doc = f.contentWindow.document;
-                const list = doc.getElementById('list'); list.innerHTML = "";
+            syncCinema() {
+                const frame = document.getElementById('frame-cinema')?.contentWindow;
+                if(!frame) return;
+                const list = frame.document.getElementById('playlist');
+                list.innerHTML = "";
                 this.playlist.forEach((ep, i) => {
-                    const div = doc.createElement('div');
-                    div.className = "min-w-[120px] bg-white/5 p-2 rounded border border-white/10 cursor-pointer text-[10px]";
-                    div.innerHTML = `<b>EP ${i+1}</b><br><span class='opacity-50 truncate'>${ep.name}</span>`;
-                    div.onclick = () => {
-                        doc.getElementById('msg').style.display = 'none';
-                        doc.getElementById('vid').src = `https://drive.google.com/file/d/${ep.id}/preview`;
-                        doc.getElementById('vid').style.display = 'block';
+                    const d = frame.document.createElement('div');
+                    d.className = "min-w-[130px] bg-white/5 border border-white/10 p-3 rounded-lg cursor-pointer hover:border-cyan-500 transition";
+                    d.innerHTML = `<div class='text-cyan-500 text-[9px] font-bold'>EP ${i+1}</div><div class='text-[10px] truncate mt-1'>${ep.name}</div>`;
+                    d.onclick = () => {
+                        frame.document.getElementById('void').style.display='none';
+                        const p = frame.document.getElementById('player');
+                        p.src = `https://drive.google.com/file/d/${ep.id}/preview`;
+                        p.style.display='block';
                     };
-                    list.appendChild(div);
+                    list.appendChild(d);
                 });
+            },
+
+            drag(el) {
+                const bar = el.querySelector('.win-bar');
+                let x=0, y=0, x1=0, y1=0;
+                bar.onmousedown = (e) => {
+                    x1=e.clientX; y1=e.clientY;
+                    document.onmouseup = () => { document.onmousemove = null; };
+                    document.onmousemove = (e) => {
+                        x=x1-e.clientX; y=y1-e.clientY; x1=e.clientX; y1=e.clientY;
+                        el.style.top = (el.offsetTop - y) + "px";
+                        el.style.left = (el.offsetLeft - x) + "px";
+                    };
+                };
             }
         };
     </script>
