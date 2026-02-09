@@ -1,107 +1,102 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenith OS | Starship</title>
+    <title>Zenith OS | Starship Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        :root {
-            --accent: #8a2be2;
-            --neon: #ae54ff;
-        }
+        :root { --accent: #8a2be2; --neon: #ae54ff; }
         body {
-            margin: 0;
+            margin: 0; padding: 0; height: 100vh; overflow: hidden;
             background: radial-gradient(circle at top left, #120032 0%, #050505 90%);
-            height: 100vh;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            color: #fff;
+            font-family: 'Inter', sans-serif; color: #fff;
         }
 
-        /* Desktop Area */
         #desktop { position: absolute; inset: 0; z-index: 1; }
-
-        /* Window System */
+        
+        /* Starship Window UI */
         .window {
-            position: absolute;
-            background: #0d0d14;
-            border: 1px solid rgba(138, 43, 226, 0.3);
-            border-radius: 12px;
-            display: flex; flex-direction: column;
-            box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            position: absolute; background: #0d0d14;
+            border: 1px solid rgba(138, 43, 226, 0.4); border-radius: 12px;
+            display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7);
             overflow: hidden; z-index: 10;
         }
         .win-bar {
-            height: 38px; background: linear-gradient(90deg, #1a0033, #0d0d14);
+            height: 40px; background: linear-gradient(90deg, #1a0033, #0d0d14);
             display: flex; align-items: center; padding: 0 15px; cursor: grab;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .win-title { font-size: 11px; font-weight: 800; color: var(--neon); flex-grow: 1; text-transform: uppercase; }
+        .win-title { font-size: 11px; font-weight: 800; color: var(--neon); flex-grow: 1; text-transform: uppercase; letter-spacing: 1px; }
+        .win-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; margin-left: 8px; }
+
         .win-content { flex-grow: 1; background: #000; position: relative; }
         iframe { width: 100%; height: 100%; border: none; }
-
-        /* The Dock */
+        
+        /* Glassmorphic Dock */
         #dock {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(18, 0, 50, 0.6); backdrop-filter: blur(20px);
+            background: rgba(18, 0, 50, 0.5); backdrop-filter: blur(25px);
             border: 1px solid rgba(174, 84, 255, 0.2);
-            padding: 10px 20px; border-radius: 25px; display: flex; gap: 15px; z-index: 9999;
+            padding: 12px 20px; border-radius: 24px; display: flex; gap: 18px; z-index: 9999;
         }
         .dock-item {
             width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s;
+            cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 12px;
         }
-        .dock-item:hover { transform: translateY(-10px); }
-        .dock-item i { font-size: 28px; color: #fff; }
+        .dock-item:hover { transform: translateY(-12px) scale(1.2); background: rgba(255,255,255,0.1); }
+        .dock-item i { font-size: 28px; color: #fff; text-shadow: 0 0 10px var(--neon); }
 
-        /* Panic Shield */
-        #panic { position: fixed; inset: 0; background: #fff; z-index: 100000; display: none; }
+        #panic-layer { position: fixed; inset: 0; background: white; z-index: 1000000; display: none; }
     </style>
 </head>
-<body onload="OS.boot()">
+<body onload="Kernel.boot()">
 
-    <div id="panic"><iframe src="https://classroom.google.com" style="width:100%; height:100%;"></iframe></div>
+    <div id="panic-layer">
+        <iframe src="https://classroom.google.com" style="width:100%; height:100%;"></iframe>
+    </div>
+
     <div id="desktop"></div>
 
     <div id="dock">
-        <div class="dock-item" onclick="OS.open('home')"><i class="material-icons-round">rocket_launch</i></div>
-        <div class="dock-item" onclick="OS.open('tv')"><i class="material-icons-round">live_tv</i></div>
-        <div class="dock-item" onclick="OS.open('ai')"><i class="material-icons-round">psychology</i></div>
-        <div class="dock-item" onclick="OS.open('profile')"><i class="material-icons-round">account_circle</i></div>
+        <div class="dock-item" onclick="Kernel.open('home')"><i class="material-icons-round">rocket_launch</i></div>
+        <div class="dock-item" onclick="Kernel.open('tv')"><i class="material-icons-round">live_tv</i></div>
+        <div class="dock-item" onclick="Kernel.open('ai')"><i class="material-icons-round">psychology</i></div>
+        <div class="dock-item" onclick="Kernel.open('profile')"><i class="material-icons-round">account_circle</i></div>
         <div style="width:1px; height:30px; background:rgba(255,255,255,0.1); align-self:center;"></div>
-        <div class="dock-item" onclick="OS.authDrive()"><i class="material-icons-round" style="color:#4285F4">cloud_done</i></div>
+        <div class="dock-item" onclick="Kernel.authDrive()" title="Link Google Drive"><i class="material-icons-round" style="color:#4285F4">cloud_sync</i></div>
     </div>
 
     <script src="https://accounts.google.com/gsi/client"></script>
+    
     <script>
-        const OS = {
+        const Kernel = {
             z: 100,
             DRIVE_ACCESS_TOKEN: null,
-            CONFIG: {
-                clientId: '106130595767-2ai0d8mac2ard8q2ngthuuh5pahoutuv.apps.googleusercontent.com',
-                scopes: 'https://www.googleapis.com/auth/drive.file'
-            },
+            // UPDATED CLIENT ID
+            CLIENT_ID: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
 
             apps: {
                 'home': { title: 'Dashboard', url: 'start.html', w: 900, h: 600 },
                 'tv': { title: 'Star TV', url: 'tv.html', w: 1000, h: 700 },
-                'profile': { title: 'Profile', url: 'profile.html', w: 600, h: 750 },
-                'ai': { title: 'Orbit AI', url: 'ai.html', w: 500, h: 700 }
+                'profile': { title: 'User Profile', url: 'profile.html', w: 600, h: 750 },
+                'ai': { title: 'Orbit AI Pro', url: 'ai.html', w: 500, h: 700 }
             },
 
             boot() {
                 this.open('home');
-                window.addEventListener('keydown', e => { if(e.key === '`') document.getElementById('panic').style.display='block'; });
-                
-                // Initialize Google Auth
+                window.addEventListener('keydown', e => { 
+                    if(e.key === '`') document.getElementById('panic-layer').style.display = 'block'; 
+                });
+
                 this.tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: this.CONFIG.clientId,
-                    scope: this.CONFIG.scopes,
+                    client_id: this.CLIENT_ID,
+                    scope: 'https://www.googleapis.com/auth/drive.file',
                     callback: (tokenResponse) => {
                         this.DRIVE_ACCESS_TOKEN = tokenResponse.access_token;
-                        alert("Starship connected to Google Drive.");
+                        console.log("Cloud Bridge Established.");
                     },
                 });
             },
@@ -121,10 +116,8 @@
                 win.innerHTML = `
                     <div class="win-bar">
                         <div class="win-title">${app.title}</div>
-                        <div style="display:flex; gap:8px;">
-                            <div style="width:12px; height:12px; border-radius:50%; background:#ffbd2e; cursor:pointer;"></div>
-                            <div onclick="this.closest('.window').remove()" style="width:12px; height:12px; border-radius:50%; background:#ff5f56; cursor:pointer;"></div>
-                        </div>
+                        <div class="win-dot" style="background:#ffbd2e;"></div>
+                        <div class="win-dot" style="background:#ff5f56;" onclick="this.closest('.window').remove()"></div>
                     </div>
                     <div class="win-content"><iframe src="${app.url}"></iframe></div>
                 `;
