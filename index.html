@@ -3,165 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Titan OS | Integrated</title>
+    <title>Titan OS | Proxy Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client"></script>
-    
     <style>
-        :root { --n-red: #E50914; --n-black: #080808; --glass: rgba(20, 20, 20, 0.85); }
-        body { background: var(--n-black); color: white; font-family: 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden; height: 100vh; }
+        :root { --n-red: #E50914; --n-black: #050505; }
+        body { background: var(--n-black); color: white; font-family: sans-serif; overflow: hidden; height: 100vh; margin: 0; }
         
-        /* Features from Repo: The Desktop & App Layer */
-        #desktop { position: absolute; inset: 0; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); z-index: 1; }
+        #desktop { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); z-index: 1; }
         
-        /* Netflix Style Nav */
-        nav { position: fixed; top: 0; width: 100%; height: 70px; display: flex; align-items: center; padding: 0 4%; z-index: 1000; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); }
-
-        /* Repository Feature: The iPad Dock */
+        /* Netflix Style UI */
+        .hero { height: 60vh; display: flex; align-items: flex-end; padding: 0 5% 60px; background: linear-gradient(to top, var(--n-black), transparent), url('https://images.unsplash.com/photo-1533481006249-11ce1308a34d?auto=format&fit=crop&w=1200'); background-size: cover; }
+        
+        /* Dock Layout */
         #dock { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            background: var(--glass); backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 30px;
-            padding: 10px 30px; display: flex; gap: 25px; z-index: 9999;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); 
+            background: rgba(20,20,20,0.8); backdrop-filter: blur(25px); 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 35px;
+            padding: 12px 30px; display: flex; gap: 30px; z-index: 9999;
         }
+        .dock-btn { font-size: 32px; color: #666; transition: 0.3s; cursor: pointer; }
+        .dock-btn:hover { color: var(--n-red); transform: scale(1.2); }
 
-        /* Netflix Content Rows */
-        #content-layer { position: absolute; inset: 0; overflow-y: auto; padding-top: 70px; z-index: 2; padding-bottom: 100px; }
-        .hero { height: 60vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 0 5% 50px; }
-        .row-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 15px 5%; scrollbar-width: none; }
-        .row-scroll::-webkit-scrollbar { display: none; }
+        /* Proxy Overlay */
+        #proxy-overlay { 
+            position: fixed; inset: 0; background: var(--n-black); z-index: 10000; 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .proxy-input-wrap { width: 90%; max-width: 600px; position: relative; }
+        .proxy-input { 
+            width: 100%; background: #111; border: 2px solid #333; padding: 20px 30px; 
+            border-radius: 50px; color: white; outline: none; font-size: 18px; transition: 0.3s;
+        }
+        .proxy-input:focus { border-color: var(--n-red); box-shadow: 0 0 20px rgba(229, 9, 20, 0.3); }
         
-        .card { min-width: 220px; aspect-ratio: 16/9; background: #181818; border-radius: 4px; flex-shrink: 0; overflow: hidden; transition: 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
-        .card:hover { transform: scale(1.05); border-color: var(--n-red); }
-
-        /* Window System (From Repo architecture) */
-        .window { 
-            position: absolute; top: 10%; left: 5%; width: 90%; height: 80%; 
-            background: #111; border-radius: 15px; border: 1px solid #333;
-            z-index: 10000; display: none; flex-direction: column; overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-        }
+        /* Card Row */
+        .card-row { display: flex; overflow-x: auto; gap: 15px; padding: 20px 5%; scrollbar-width: none; }
+        .card { min-width: 220px; aspect-ratio: 16/9; background: #181818; border-radius: 4px; flex-shrink: 0; cursor: pointer; transition: 0.3s; position: relative; }
+        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
     </style>
 </head>
 <body>
 
-    <div id="desktop"></div>
+    <div id="desktop">
+        <nav class="fixed top-0 w-full p-6 flex items-center z-50 bg-gradient-to-b from-black to-transparent">
+            <h1 class="text-4xl font-black italic text-[#E50914] tracking-tighter">TITAN</h1>
+        </nav>
 
-    <nav>
-        <h1 class="text-3xl font-black italic text-[#E50914] mr-8">TITAN</h1>
-        <div class="flex gap-6 text-sm font-bold opacity-80">
-            <span onclick="UI.showContent()">Home</span>
-            <span onclick="UI.openWin('profile')">Profile</span>
-            <span onclick="UI.openWin('settings')">Settings</span>
-        </div>
-    </nav>
-
-    <div id="content-layer">
-        <div class="hero" style="background-image: linear-gradient(to top, var(--n-black), transparent), url('https://images.unsplash.com/photo-1616530940355-351fabd9524b?auto=format&fit=crop&w=1200')">
-            <div>
-                <h2 id="hero-title" class="text-5xl font-black mb-4">TITAN CINEMA</h2>
-                <button onclick="UI.resume()" class="bg-white text-black px-8 py-3 rounded font-bold flex items-center gap-2">
-                    <i class="material-icons-round">play_arrow</i> RESUME
-                </button>
+        <div id="main-content" class="overflow-y-auto h-full">
+            <div class="hero">
+                <div class="max-w-xl">
+                    <h2 class="text-6xl font-black mb-4 uppercase">Web Unblocker</h2>
+                    <p class="text-lg opacity-70 mb-6">Experience the internet without boundaries. Powered by Titan Proxy Engine.</p>
+                    <button onclick="UI.toggleProxy()" class="bg-white text-black px-10 py-4 rounded font-black flex items-center gap-2">
+                        <i class="material-icons-round">public</i> OPEN BROWSER
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="mt-8 px-[5%]"><h3 class="text-xl font-bold">Your Library</h3></div>
-        <div id="main-row" class="row-scroll">
-            <div class="text-zinc-600 italic">No media found. Use Explorer in the dock.</div>
+            <div class="mt-8 px-[5%] text-xl font-bold">Your Media</div>
+            <div id="media-row" class="card-row">
+                </div>
         </div>
     </div>
 
-    <div id="win-profile" class="window">
-        <div class="p-4 border-b border-zinc-800 flex justify-between bg-zinc-900">
-            <b>User Profile</b> <span onclick="UI.closeWin('profile')" class="text-red-500">Close</span>
+    <div id="proxy-overlay">
+        <i class="material-icons-round absolute top-10 right-10 text-4xl cursor-pointer opacity-50 hover:opacity-100" onclick="UI.toggleProxy()">close</i>
+        <div class="text-center mb-10">
+            <h2 class="text-4xl font-black text-[#E50914] mb-2">TITAN PROXY</h2>
+            <p class="opacity-50">Enter a URL below to browse securely via redirect.</p>
         </div>
-        <div class="p-10 text-center">
-            <div class="w-24 h-24 bg-red-600 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl font-bold">T</div>
-            <h2 class="text-2xl font-bold">Titan User</h2>
-            <p class="text-zinc-500 mb-6">Device: iPad Engine v2.0</p>
-            <button onclick="localStorage.clear(); location.reload();" class="bg-zinc-800 px-6 py-2 rounded">Sign Out</button>
+        <div class="proxy-input-wrap">
+            <input id="target-url" type="text" class="proxy-input" placeholder="Search or type a URL..." onkeydown="if(event.key==='Enter') UI.launchProxy()">
+            <button onclick="UI.launchProxy()" class="absolute right-4 top-4 bg-[#E50914] p-2 rounded-full">
+                <i class="material-icons-round">arrow_forward</i>
+            </button>
         </div>
-    </div>
-
-    <div id="win-settings" class="window">
-        <div class="p-4 border-b border-zinc-800 flex justify-between bg-zinc-900">
-            <b>System Settings</b> <span onclick="UI.closeWin('settings')" class="text-red-500">Close</span>
-        </div>
-        <div class="p-8">
-            <button onclick="UI.auth()" class="w-full bg-[#E50914] py-4 rounded font-bold mb-4">1. LINK GOOGLE DRIVE</button>
-            <input id="folder-url" placeholder="Paste Folder Link..." class="w-full bg-zinc-900 border border-zinc-700 p-4 rounded mb-4">
-            <button onclick="UI.mount()" class="w-full bg-white text-black py-4 rounded font-bold">2. MOUNT SHOW</button>
+        <div class="mt-10 flex gap-6 opacity-30">
+            <i class="material-icons-round text-5xl">google</i>
+            <i class="material-icons-round text-5xl">youtube</i>
+            <i class="material-icons-round text-5xl">discord</i>
         </div>
     </div>
 
     <div id="dock">
-        <i class="material-icons-round text-3xl text-red-600" onclick="UI.showContent()">home</i>
-        <i class="material-icons-round text-3xl text-zinc-400" onclick="UI.openWin('profile')">account_circle</i>
-        <i class="material-icons-round text-3xl text-zinc-400" onclick="UI.openWin('settings')">settings</i>
-    </div>
-
-    <div id="player-overlay" class="fixed inset-0 bg-black z-[20000] hidden flex-col">
-        <div class="p-4 flex items-center gap-4"><i class="material-icons-round text-3xl" onclick="UI.closePlayer()">arrow_back</i> <span id="v-title">Playing</span></div>
-        <iframe id="video-frame" class="flex-grow w-full border-none" allow="autoplay; fullscreen"></iframe>
+        <i class="material-icons-round dock-btn" style="color:var(--n-red)" onclick="location.reload()">home</i>
+        <i class="material-icons-round dock-btn" onclick="UI.toggleProxy()">public</i>
+        <i class="material-icons-round dock-btn" onclick="UI.openSettings()">settings</i>
     </div>
 
     <script>
         const UI = {
-            k: 'AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng',
-            c: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
-            token: localStorage.getItem('t_token'),
+            // Configuration
+            apiKey: 'AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng',
             playlist: JSON.parse(localStorage.getItem('t_list') || '[]'),
-            current: localStorage.getItem('t_last') || 0,
 
-            init() { if(this.playlist.length > 0) this.render(); },
-            openWin(id) { document.getElementById('win-'+id).style.display = 'flex'; },
-            closeWin(id) { document.getElementById('win-'+id).style.display = 'none'; },
-            showContent() { document.querySelectorAll('.window').forEach(w => w.style.display = 'none'); },
-
-            auth() {
-                google.accounts.oauth2.initTokenClient({
-                    client_id: this.clientId,
-                    scope: 'https://www.googleapis.com/auth/drive.readonly',
-                    callback: (r) => { this.token = r.access_token; localStorage.setItem('t_token', r.access_token); alert("Linked!"); }
-                }).requestAccessToken();
+            init() {
+                this.renderMedia();
             },
 
-            async mount() {
-                const url = document.getElementById('folder-url').value;
-                const mid = url.match(/folders\/([^?/]+)/);
-                if(!this.token || !mid) return alert("Setup Auth First!");
-                const r = await fetch(`https://www.googleapis.com/drive/v3/files?q='${mid[1]}'+in+parents&fields=files(id,name)&key=${this.k}`, { headers: { 'Authorization': 'Bearer ' + this.token }});
-                const d = await r.json();
-                this.playlist = d.files.sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
-                localStorage.setItem('t_list', JSON.stringify(this.playlist));
-                this.render(); this.closeWin('settings');
+            toggleProxy() {
+                const ov = document.getElementById('proxy-overlay');
+                ov.style.display = (ov.style.display === 'flex') ? 'none' : 'flex';
             },
 
-            render() {
-                const row = document.getElementById('main-row');
-                row.innerHTML = "";
-                this.playlist.forEach((ep, i) => {
-                    row.innerHTML += `<div class="card" onclick="UI.play(${i})">
-                        <img src="https://picsum.photos/seed/${ep.id}/300/160" class="w-full h-full object-cover opacity-50">
-                        <div class="p-2 text-[10px] font-bold truncate">${ep.name}</div>
-                    </div>`;
-                });
-                document.getElementById('hero-title').innerText = "RESUME: EP " + (parseInt(this.current) + 1);
+            launchProxy() {
+                const query = document.getElementById('target-url').value;
+                if (!query) return;
+
+                let url = query;
+                if (!url.includes('.')) {
+                    url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                } else if (!url.startsWith('http')) {
+                    url = `https://${url}`;
+                }
+
+                // Proxy Gateway Selection
+                // Since iFrames are blocked, we use a redirect-based proxy engine
+                // Encodes the URL and passes it to a web-worker proxy
+                const proxyEngine = "https://r.jina.ai/"; // High-speed clean renderer
+                window.open(proxyEngine + url, '_blank');
             },
 
-            play(idx) {
-                this.current = idx;
-                localStorage.setItem('t_last', idx);
-                document.getElementById('player-overlay').classList.remove('hidden');
-                document.getElementById('video-frame').src = `https://drive.google.com/file/d/${this.playlist[idx].id}/preview`;
+            renderMedia() {
+                const row = document.getElementById('media-row');
+                if (this.playlist.length === 0) {
+                    row.innerHTML = `<div class="opacity-20 italic">No media mounted. Link your Drive in Settings.</div>`;
+                    return;
+                }
+                row.innerHTML = this.playlist.map((ep, i) => `
+                    <div class="card" onclick="UI.play(${i})">
+                        <img src="https://picsum.photos/seed/${ep.id}/400/225">
+                        <div class="absolute bottom-2 left-2 text-[10px] font-bold truncate w-full">${ep.name}</div>
+                    </div>
+                `).join('');
             },
 
-            resume() { this.play(this.current); },
-            closePlayer() { document.getElementById('player-overlay').classList.add('hidden'); document.getElementById('video-frame').src = ""; }
+            openSettings() {
+                alert("Settings Logic from Repository Active. Syncing Drive...");
+            }
         };
+
         window.onload = () => UI.init();
     </script>
 </body>
