@@ -2,219 +2,215 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TITAN OS | VOIDWALKER v12</title>
+    <title>TITAN OS | LEGACY_SINGULARITY v13</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        :root { 
-            --accent: #00e5ff; 
-            --glow: 0 0 20px rgba(0, 229, 255, 0.4);
-            --panel: rgba(5, 5, 8, 0.85);
-        }
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; margin: 0; perspective: 1200px; }
+        :root { --accent: #ff0055; --bg: #030305; --glass: rgba(10, 10, 15, 0.9); }
+        body { background: var(--bg); color: white; font-family: 'JetBrains Mono', monospace; overflow: hidden; height: 100vh; margin: 0; perspective: 1500px; }
         
-        #shader-canvas { position: fixed; inset: 0; z-index: 0; }
-
-        /* 3D WINDOW STYLING */
+        #kernel-canvas { position: fixed; inset: 0; z-index: 0; }
+        
+        /* THE WINDOWS */
         .win { 
-            position: absolute; background: var(--panel); border: 1px solid rgba(0, 229, 255, 0.2);
-            backdrop-filter: blur(40px); border-radius: 8px; display: none; flex-direction: column;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.9); transform-style: preserve-3d;
-            will-change: transform; transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; background: var(--glass); border: 1px solid rgba(255, 0, 85, 0.3);
+            backdrop-filter: blur(30px); border-radius: 4px; display: none; flex-direction: column;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.9); transform-style: preserve-3d;
         }
         .win.active { display: flex; }
-        .win-head { background: rgba(0, 229, 255, 0.05); padding: 10px 15px; cursor: grab; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 229, 255, 0.1); }
-        .win-body { flex: 1; overflow: auto; padding: 15px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+        .win-head { background: rgba(255, 0, 85, 0.1); padding: 8px 12px; cursor: move; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,0,85,0.2); }
+        .win-body { flex: 1; overflow: auto; padding: 15px; font-size: 11px; }
 
-        /* DOCK & HUD */
+        /* THE CINEMA */
+        #cinema-screen { background: #000; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; border: 2px solid #222; position: relative; }
+        .cinema-glow { position: absolute; inset: 0; box-shadow: inset 0 0 50px rgba(255,0,85,0.2); pointer-events: none; }
+
+        /* DOCK */
         #dock { 
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); border: 1px solid var(--accent);
-            padding: 10px 25px; border-radius: 12px; display: flex; gap: 30px; z-index: 10000;
-            box-shadow: var(--glow);
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.9); border: 1px solid var(--accent);
+            padding: 8px 20px; border-radius: 4px; display: flex; gap: 20px; z-index: 10000;
         }
-        .app-btn { font-size: 28px; cursor: pointer; color: var(--accent); transition: 0.3s; opacity: 0.6; }
-        .app-btn:hover { opacity: 1; transform: scale(1.3) translateY(-10px); }
-
-        #telemetry { position: fixed; top: 20px; left: 20px; font-family: monospace; font-size: 10px; color: var(--accent); opacity: 0.7; pointer-events: none; }
+        .icon { font-size: 24px; cursor: pointer; color: var(--accent); opacity: 0.6; transition: 0.3s; }
+        .icon:hover { opacity: 1; transform: scale(1.2) translateY(-5px); }
     </style>
 </head>
-<body onclick="AudioEngine.init()">
+<body onclick="AudioKernel.start()">
 
-    <canvas id="shader-canvas"></canvas>
+    <canvas id="kernel-canvas"></canvas>
 
-    <div id="telemetry">
-        <div>ORBITAL_ID: ISS (NORAD 25544)</div>
-        <div id="sat-lat">LAT: 0.0000</div>
-        <div id="sat-lng">LNG: 0.0000</div>
-        <div id="sat-vel">VEL: 27,600 km/h</div>
+    <div id="win-proxy" class="win" style="width: 700px; height: 500px; top: 50px; left: 50px;">
+        <div class="win-head" onmousedown="UI.drag(event, 'win-proxy')">
+            <span class="flex items-center gap-2"><i class="material-icons-round text-sm">public</i> NETGATE_PROXY_v4</span>
+            <button onclick="UI.close('win-proxy')">×</button>
+        </div>
+        <div class="win-body flex flex-col p-0">
+            <div class="bg-zinc-900 p-2 flex gap-2">
+                <input id="proxy-url" class="bg-black border border-white/10 flex-1 px-3 py-1 outline-none text-[var(--accent)]" value="https://titan.network/nodes">
+                <button onclick="Proxy.load()" class="bg-[var(--accent)] text-black px-4 font-bold text-[10px]">ROUTE</button>
+            </div>
+            <div id="proxy-viewport" class="flex-1 bg-white text-black p-4 font-serif overflow-auto">
+                <h1 class="text-2xl font-bold mb-4">Titan Proxy Node #104</h1>
+                <p>Establishing encrypted tunnel...</p>
+                <div class="mt-4 p-4 border-2 border-dashed border-zinc-300 bg-zinc-50">
+                    [SECURE_CONTENT_BLOCK] - Simulated routing active.
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="win-term" class="win" style="width: 600px; height: 400px; top: 150px; left: 100px;">
-        <div class="win-head" onmousedown="WindowPhysics.start(event, 'win-term')">
-            <span class="text-[9px] font-black tracking-[0.3em] uppercase">Quantum_Shell_v12</span>
-            <button onclick="UI.close('win-term')">×</button>
+    <div id="win-cinema" class="win" style="width: 600px; height: 420px; top: 150px; left: 600px;">
+        <div class="win-head" onmousedown="UI.drag(event, 'win-cinema')">
+            <span class="flex items-center gap-2"><i class="material-icons-round text-sm">movie</i> TITAN_CINEMA</span>
+            <button onclick="UI.close('win-cinema')">×</button>
         </div>
         <div class="win-body">
-            <div id="output" class="mb-4 opacity-70"></div>
-            <div class="flex gap-2">
-                <span class="text-[var(--accent)]">λ</span>
-                <input type="text" id="shell-in" class="bg-transparent outline-none w-full text-white" onkeydown="if(event.key==='Enter') Shell.run(this)">
+            <div id="cinema-screen">
+                <div class="cinema-glow"></div>
+                <i class="material-icons-round text-6xl opacity-20">play_circle_filled</i>
+                <div class="absolute bottom-4 left-4 text-[9px] text-zinc-500">DECODING_STREAM: 0.00%</div>
+            </div>
+            <div class="mt-4 flex flex-col gap-2">
+                <input class="bg-transparent border-b border-white/20 p-1 text-[10px] outline-none" placeholder="Enter .mp4 or Stream URL...">
+                <div class="flex gap-4">
+                    <button class="text-[10px] hover:text-[var(--accent)]">▶ PLAY</button>
+                    <button class="text-[10px] hover:text-[var(--accent)]">■ STOP</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="win-stats" class="win" style="width: 400px; height: 300px; top: 200px; left: 750px;">
-        <div class="win-head" onmousedown="WindowPhysics.start(event, 'win-stats')">
-            <span class="text-[9px] font-black tracking-[0.3em] uppercase">Core_Analytics</span>
-            <button onclick="UI.close('win-stats')">×</button>
+    <div id="win-mem" class="win" style="width: 300px; height: 300px; top: 400px; left: 150px;">
+        <div class="win-head" onmousedown="UI.drag(event, 'win-mem')">
+            <span class="flex items-center gap-2"><i class="material-icons-round text-sm">bubble_chart</i> HEAP_FLOW</span>
+            <button onclick="UI.close('win-mem')">×</button>
         </div>
-        <div class="win-body space-y-4">
-            <div class="p-3 bg-white/5 border border-white/10">
-                <div class="flex justify-between text-[10px] mb-2"><span>KERNEL_LATENCY</span><span id="stat-lat">4ms</span></div>
-                <div class="h-1 bg-white/10 w-full"><div id="bar-lat" class="h-full bg-[var(--accent)] w-1/4"></div></div>
-            </div>
-            <div class="text-[10px] text-zinc-500 uppercase leading-relaxed">
-                Memory Leak Protection: ACTIVE<br>
-                Z-Axis Buffer: STABLE<br>
-                Spatial Sound-Mapping: ON
-            </div>
+        <div class="win-body flex items-center justify-center">
+            <canvas id="mem-canvas" width="250" height="200"></canvas>
         </div>
     </div>
 
     <div id="dock">
-        <div class="app-btn" onclick="UI.open('win-term')"><i class="material-icons-round">terminal</i></div>
-        <div class="app-btn" onclick="UI.open('win-stats')"><i class="material-icons-round">analytics</i></div>
-        <div class="app-btn" onclick="location.reload()"><i class="material-icons-round">restart_alt</i></div>
+        <div class="icon" onclick="UI.open('win-proxy')"><i class="material-icons-round">public</i></div>
+        <div class="icon" onclick="UI.open('win-cinema')"><i class="material-icons-round">movie</i></div>
+        <div class="icon" onclick="UI.open('win-mem')"><i class="material-icons-round">bubble_chart</i></div>
+        <div class="icon" onclick="location.reload()"><i class="material-icons-round">power_settings_new</i></div>
     </div>
 
     <script>
-        const AudioEngine = {
-            ctx: null, panner: null, osc: null,
-            init() {
-                if(this.ctx) return;
-                this.ctx = new AudioContext();
-                this.panner = this.ctx.createStereoPanner();
-                this.osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                this.osc.type = 'sine';
-                this.osc.frequency.value = 60;
-                gain.gain.value = 0.02;
-
-                this.osc.connect(this.panner).connect(gain).connect(this.ctx.destination);
-                this.osc.start();
-            },
-            updateSpatial(xRatio, freqMod) {
-                if(!this.panner) return;
-                this.panner.pan.setTargetAtTime((xRatio * 2) - 1, this.ctx.currentTime, 0.1);
-                this.osc.frequency.setTargetAtTime(60 + freqMod, this.ctx.currentTime, 0.1);
+        const AudioKernel = {
+            ctx: null,
+            start() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+            beep(f, d=0.1) {
+                if(!this.ctx) return;
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.connect(g); g.connect(this.ctx.destination);
+                o.frequency.value = f;
+                g.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + d);
+                o.start(); o.stop(this.ctx.currentTime + d);
             }
         };
 
-        const WindowPhysics = {
-            activeWin: null, velX: 0, velY: 0, lastX: 0, lastY: 0,
-            start(e, id) {
-                this.activeWin = document.getElementById(id);
-                this.activeWin.style.zIndex = Date.now();
-                this.lastX = e.clientX;
-                this.lastY = e.clientY;
-
-                const move = (ev) => {
-                    this.velX = ev.clientX - this.lastX;
-                    this.velY = ev.clientY - this.lastY;
-                    
-                    const newX = this.activeWin.offsetLeft + this.velX;
-                    const newY = this.activeWin.offsetTop + this.velY;
-                    
-                    this.activeWin.style.left = newX + 'px';
-                    this.activeWin.style.top = newY + 'px';
-                    
-                    // 3D TILT EFFECT
-                    const tiltY = Math.max(-15, Math.min(15, this.velX * 2));
-                    const tiltX = Math.max(-15, Math.min(15, -this.velY * 2));
-                    this.activeWin.style.transform = `rotateY(${tiltY}deg) rotateX(${tiltX}deg) translateZ(50px)`;
-                    
-                    this.lastX = ev.clientX;
-                    this.lastY = ev.clientY;
-
-                    AudioEngine.updateSpatial(ev.clientX / window.innerWidth, Math.abs(this.velX));
-                };
-
-                const stop = () => {
-                    document.onmousemove = null;
-                    document.onmouseup = null;
-                    this.activeWin.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
-                    this.activeWin.style.transform = `rotateY(0deg) rotateX(0deg) translateZ(0px)`;
-                };
-
-                document.onmousemove = move;
-                document.onmouseup = stop;
-            }
-        };
-
-        const Shell = {
-            run(input) {
-                const out = document.getElementById('output');
-                const val = input.value.trim().toLowerCase();
-                out.innerHTML += `<div class="text-[var(--accent)]">> ${input.value}</div>`;
-                input.value = "";
-
-                if(val === 'telemetry') out.innerHTML += `<div>PINGING ISS... DATA_SYNCED.</div>`;
-                else if(val === 'clear') out.innerHTML = "";
-                else out.innerHTML += `<div class="opacity-50">Unknown sector. Type 'telemetry' for orbital lock.</div>`;
+        const Proxy = {
+            load() {
+                const url = document.getElementById('proxy-url').value;
+                const vp = document.getElementById('proxy-viewport');
+                vp.innerHTML = `<div class="animate-pulse">Requesting header from ${url}...</div>`;
+                setTimeout(() => {
+                    vp.innerHTML = `
+                        <h2 class="text-xl font-black text-red-600">403 ACCESS_RESTRICTED</h2>
+                        <p class="mt-2 text-sm text-zinc-600">The Titan Hypervisor has intercepted this request. External traffic is filtered through the Neural Sandbox.</p>
+                        <ul class="mt-4 list-disc list-inside text-xs opacity-50">
+                            <li>IP_MASK: ACTIVE</li>
+                            <li>DNS_POISON_PROTECTION: ON</li>
+                            <li>PROTOCOL: TITAN_SECURE</li>
+                        </ul>
+                    `;
+                    AudioKernel.beep(200, 0.5);
+                }, 1500);
             }
         };
 
         const UI = {
-            open(id) { document.getElementById(id).classList.add('active'); },
-            close(id) { document.getElementById(id).classList.remove('active'); }
+            open(id) { 
+                document.getElementById(id).classList.add('active'); 
+                document.getElementById(id).style.zIndex = Date.now();
+                AudioKernel.beep(600, 0.1);
+            },
+            close(id) { document.getElementById(id).classList.remove('active'); },
+            drag(e, id) {
+                const el = document.getElementById(id);
+                el.style.zIndex = Date.now();
+                const ox = e.clientX - el.offsetLeft;
+                const oy = e.clientY - el.offsetTop;
+                document.onmousemove = (ev) => {
+                    el.style.left = (ev.clientX - ox) + 'px';
+                    el.style.top = (ev.clientY - oy) + 'px';
+                    // Suble 3D tilt
+                    const rx = (ev.clientY - window.innerHeight/2) / 50;
+                    const ry = (ev.clientX - window.innerWidth/2) / 50;
+                    el.style.transform = `rotateX(${-rx}deg) rotateY(${ry}deg)`;
+                };
+                document.onmouseup = () => {
+                    document.onmousemove = null;
+                    el.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                };
+            }
         };
 
-        // SATELLITE TELEMETRY LINK
-        async function fetchISS() {
-            try {
-                const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-                const data = await res.json();
-                document.getElementById('sat-lat').innerText = `LAT: ${data.latitude.toFixed(4)}`;
-                document.getElementById('sat-lng').innerText = `LNG: ${data.longitude.toFixed(4)}`;
-                document.getElementById('sat-vel').innerText = `VEL: ${data.velocity.toFixed(0)} km/h`;
-            } catch(e) {}
-        }
-        setInterval(fetchISS, 5000);
+        // MEMORY BUBBLES
+        function initMemCanvas() {
+            const mc = document.getElementById('mem-canvas');
+            const mctx = mc.getContext('2d');
+            let spheres = Array(5).fill().map(() => ({ x: 125, y: 100, r: 10+Math.random()*20, vx: Math.random()-0.5, vy: Math.random()-0.5 }));
 
-        // BACKGROUND SHADER SIMULATION
-        function initShader() {
-            const canvas = document.getElementById('shader-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            function draw(time) {
-                const step = time * 0.001;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for(let i=0; i<3; i++) {
-                    ctx.beginPath();
-                    ctx.strokeStyle = `rgba(0, 229, 255, ${0.1 / (i+1)})`;
-                    ctx.lineWidth = 2;
-                    ctx.moveTo(0, canvas.height/2 + Math.sin(step + i) * 100);
-                    ctx.bezierCurveTo(
-                        canvas.width/3, canvas.height/2 + Math.cos(step) * 200,
-                        canvas.width/1.5, canvas.height/2 - Math.sin(step) * 200,
-                        canvas.width, canvas.height/2 + Math.cos(step + i) * 100
-                    );
-                    ctx.stroke();
-                }
+            function draw() {
+                mctx.clearRect(0,0,250,200);
+                spheres.forEach(s => {
+                    s.x += s.vx; s.y += s.vy;
+                    if(s.x < s.r || s.x > 250-s.r) s.vx *= -1;
+                    if(s.y < s.r || s.y > 200-s.r) s.vy *= -1;
+                    
+                    mctx.beginPath();
+                    const g = mctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+                    g.addColorStop(0, '#ff0055'); g.addColorStop(1, 'transparent');
+                    mctx.fillStyle = g;
+                    mctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+                    mctx.fill();
+                });
                 requestAnimationFrame(draw);
             }
-            draw(0);
+            draw();
+        }
+
+        // KERNEL SHADER (Starfield)
+        function initKernel() {
+            const c = document.getElementById('kernel-canvas');
+            const ctx = c.getContext('2d');
+            c.width = window.innerWidth; c.height = window.innerHeight;
+            const stars = Array(200).fill().map(() => ({ x: Math.random()*c.width, y: Math.random()*c.height, z: Math.random()*c.width }));
+
+            function loop() {
+                ctx.fillStyle = 'black'; ctx.fillRect(0,0,c.width,c.height);
+                ctx.fillStyle = 'white';
+                stars.forEach(s => {
+                    s.z -= 2;
+                    if(s.z <= 0) s.z = c.width;
+                    const x = (s.x - c.width/2) * (c.width/s.z) + c.width/2;
+                    const y = (s.y - c.height/2) * (c.width/s.z) + c.height/2;
+                    const r = (1 - s.z/c.width) * 3;
+                    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+                });
+                requestAnimationFrame(loop);
+            }
+            loop();
         }
 
         window.onload = () => {
-            initShader();
-            UI.open('win-term');
-            fetchISS();
+            initKernel();
+            initMemCanvas();
+            UI.open('win-proxy');
         };
     </script>
 </body>
