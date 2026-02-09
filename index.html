@@ -2,138 +2,160 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Titan OS | Direct Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Titan OS | iPad Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://apis.google.com/js/api.js"></script>
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; background: #000; color: #fff; font-family: sans-serif; }
-        #desktop { position: absolute; inset: 0; background: radial-gradient(circle, #001a1a, #000); z-index: 5; }
+        :root { --cyan: #00f2ff; }
+        body, html { 
+            margin: 0; padding: 0; height: 100vh; width: 100vw; 
+            overflow: hidden; background: #000; color: #fff;
+            -webkit-user-select: none; user-select: none;
+        }
+        #desktop { 
+            position: absolute; inset: 0; 
+            background: radial-gradient(circle at center, #002222 0%, #000 100%);
+            z-index: 10;
+        }
         
-        /* High-visibility Dock */
+        /* Over-sized iPad Dock */
         #dock { 
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
-            background: rgba(255,255,255,0.1); border: 2px solid #00f2ff; 
-            border-radius: 50px; padding: 15px 30px; display: flex; gap: 30px; z-index: 9999; 
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); 
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(0,242,255,0.4); 
+            backdrop-filter: blur(20px); border-radius: 30px; 
+            padding: 15px 40px; display: flex; gap: 40px; z-index: 999999; 
         }
-        .dock-btn { font-size: 40px; cursor: pointer; color: #00f2ff; transition: 0.2s; }
-        .dock-btn:active { transform: scale(1.3); color: #fff; }
+        .dock-item { color: var(--cyan); font-size: 50px; cursor: pointer; transition: 0.1s; }
+        .dock-item:active { transform: scale(0.8); opacity: 0.5; }
 
-        .win { 
-            position: absolute; top: 10%; left: 5%; width: 90%; height: 70%; 
-            background: #0a0a0f; border: 1px solid #00f2ff; border-radius: 12px; 
-            z-index: 1000; display: flex; flex-direction: column; overflow: hidden;
+        /* iPad Native Windows (No Iframes) */
+        .window { 
+            position: absolute; top: 10%; left: 5%; width: 90%; height: 75%; 
+            background: rgba(15, 15, 20, 0.95); border: 1px solid var(--cyan); 
+            border-radius: 20px; z-index: 10000; display: flex; flex-direction: column; 
+            box-shadow: 0 0 50px rgba(0,0,0,1);
         }
-        .win-header { background: #111; padding: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid #333; }
-        iframe { width: 100%; height: 100%; border: none; }
+        .win-bar { 
+            padding: 15px 20px; background: rgba(255,255,255,0.05); 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .win-body { flex-grow: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        
+        input, button { -webkit-appearance: none; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="desktop">
         <div id="dock">
-            <i class="material-icons-round dock-btn" onclick="UI.open('explorer')">folder</i>
-            <i class="material-icons-round dock-btn" onclick="UI.open('cinema')">movie</i>
+            <i class="material-icons-round dock-item" id="btn-exp">folder</i>
+            <i class="material-icons-round dock-item" id="btn-cin">movie</i>
         </div>
     </div>
 
+    <div id="win-layer"></div>
+
     <script>
-        const UI = {
+        const Titan = {
             token: null,
             playlist: [],
 
-            // Force open the UI immediately to test responsiveness
+            init() {
+                // Hard-binding touch events for iPad
+                document.getElementById('btn-exp').addEventListener('touchstart', (e) => { e.preventDefault(); this.open('explorer'); });
+                document.getElementById('btn-cin').addEventListener('touchstart', (e) => { e.preventDefault(); this.open('cinema'); });
+            },
+
             open(type) {
-                console.log("Opening:", type);
-                const existing = document.getElementById('win-' + type);
-                if (existing) return;
-
-                const div = document.createElement('div');
-                div.id = 'win-' + type;
-                div.className = 'win';
+                if(document.getElementById('win-'+type)) return;
+                const win = document.createElement('div');
+                win.id = 'win-'+type;
+                win.className = 'window';
                 
-                let content = type === 'explorer' ? this.getExp() : this.getCin();
-                
-                div.innerHTML = `
-                    <div class="win-header">
-                        <span style="color:#00f2ff; font-weight:bold; font-size:12px">${type.toUpperCase()}</span>
-                        <span onclick="document.getElementById('win-${type}').remove()" style="color:red; cursor:pointer">CLOSE</span>
+                win.innerHTML = `
+                    <div class="win-bar">
+                        <b style="color:var(--cyan); letter-spacing:2px">${type.toUpperCase()}</b>
+                        <span onclick="this.closest('.window').remove()" style="color:#ff4444; font-weight:bold; padding:10px">CLOSE</span>
                     </div>
-                    <iframe id="ifr-${type}" srcdoc="${content.replace(/"/g, '&quot;')}"></iframe>
+                    <div class="win-body" id="body-${type}"></div>
                 `;
-                document.body.appendChild(div);
+                document.getElementById('win-layer').appendChild(win);
+                this.render(type);
             },
 
-            getExp() {
-                return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
-                <body class="bg-black text-white p-10">
-                    <button onclick="parent.UI.auth()" class="w-full bg-cyan-500 text-black py-4 rounded font-bold mb-10">1. LINK GOOGLE DRIVE</button>
-                    <input id="show" placeholder="Series Name" class="w-full bg-zinc-900 border border-zinc-700 p-4 mb-5 rounded">
-                    <button onclick="parent.UI.pick(window)" class="w-full border border-cyan-500 py-4 rounded text-cyan-500">2. SELECT FOLDER</button>
-                </body></html>`;
+            render(type) {
+                const container = document.getElementById('body-'+type);
+                if(type === 'explorer') {
+                    container.innerHTML = `
+                        <button onclick="Titan.connect()" class="w-full bg-cyan-500 text-black py-5 rounded-xl font-bold mb-10 text-lg">1. CONNECT GOOGLE DRIVE</button>
+                        <input id="show-input" placeholder="Series Name..." class="w-full bg-zinc-900 border border-zinc-700 p-5 mb-5 text-white text-lg">
+                        <button onclick="Titan.pick()" class="w-full border-2 border-cyan-500 text-cyan-500 py-5 rounded-xl font-bold text-lg">2. SELECT FOLDER</button>
+                    `;
+                } else {
+                    this.syncCinema();
+                }
             },
 
-            getCin() {
-                return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
-                <body class="bg-black text-white h-screen flex flex-col p-2">
-                    <div class="flex-grow bg-zinc-900 rounded flex items-center justify-center">
-                        <iframe id="v" class="w-full h-full hidden" allow="autoplay; fullscreen"></iframe>
-                        <div id="msg">SELECT EPISODE</div>
-                    </div>
-                    <div id="list" class="h-32 overflow-x-auto flex gap-4 p-4"></div>
-                </body></html>`;
-            },
-
-            auth() {
-                google.accounts.oauth2.initTokenClient({
+            connect() {
+                const client = google.accounts.oauth2.initTokenClient({
                     client_id: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
                     scope: 'https://www.googleapis.com/auth/drive.readonly',
-                    callback: (r) => { this.token = r.access_token; alert("LINKED!"); }
-                }).requestAccessToken();
+                    callback: (r) => { this.token = r.access_token; alert("SUCCESS: Connected to Drive"); }
+                });
+                client.requestAccessToken();
             },
 
-            pick(child) {
+            pick() {
                 if(!this.token) return alert("Connect Drive First!");
                 gapi.load('picker', () => {
-                    new google.picker.PickerBuilder()
+                    const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS);
+                    const picker = new google.picker.PickerBuilder()
                         .setAppId('106130595767').setOAuthToken(this.token).setDeveloperKey('AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng')
-                        .addView(new google.picker.DocsView(google.picker.ViewId.FOLDERS))
-                        .setCallback(async (d) => {
+                        .addView(view).setCallback(async (d) => {
                             if (d.action == "picked") {
                                 const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${d.docs[0].id}'+in+parents&fields=files(id,name,mimeType)&key=AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng`, {
                                     headers: { 'Authorization': 'Bearer ' + this.token }
                                 });
                                 const j = await res.json();
                                 this.playlist = j.files.filter(f => f.mimeType.includes('video')).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
-                                this.sync();
-                                alert("Loaded " + this.playlist.length + " files");
+                                alert("Mounted " + this.playlist.length + " Episodes");
                             }
-                        }).build().setVisible(true);
+                        }).build();
+                    picker.setVisible(true);
                 });
             },
 
-            sync() {
-                const f = document.getElementById('ifr-cinema')?.contentWindow;
-                if(!f) return;
-                const list = f.document.getElementById('list');
-                list.innerHTML = "";
+            syncCinema() {
+                const container = document.getElementById('body-cinema');
+                if(!container) return;
+                container.innerHTML = `
+                    <div id="player-box" class="w-full aspect-video bg-black rounded-lg mb-5 flex items-center justify-center border border-zinc-800">
+                        <iframe id="main-v" class="w-full h-full hidden" allow="autoplay; fullscreen"></iframe>
+                        <div id="placeholder">SELECT AN EPISODE</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4" id="ep-list"></div>
+                `;
+                const list = container.querySelector('#ep-list');
                 this.playlist.forEach((ep, i) => {
-                    const btn = f.document.createElement('div');
-                    btn.className = "min-w-[120px] bg-zinc-800 p-3 rounded cursor-pointer text-xs";
-                    btn.innerHTML = `EP ${i+1}<br>${ep.name}`;
-                    btn.onclick = () => {
-                        f.document.getElementById('msg').style.display = 'none';
-                        const v = f.document.getElementById('v');
+                    const item = document.createElement('div');
+                    item.className = "bg-zinc-900 p-4 rounded-lg border border-zinc-800 active:bg-cyan-900";
+                    item.innerHTML = `<b class="text-cyan-500">EP ${i+1}</b><div class="truncate text-xs text-zinc-400">${ep.name}</div>`;
+                    item.onclick = () => {
+                        document.getElementById('placeholder').style.display = 'none';
+                        const v = document.getElementById('main-v');
                         v.src = `https://drive.google.com/file/d/${ep.id}/preview`;
                         v.style.display = 'block';
                     };
-                    list.appendChild(btn);
+                    list.appendChild(item);
                 });
             }
         };
+
+        window.onload = () => Titan.init();
     </script>
 </body>
 </html>
