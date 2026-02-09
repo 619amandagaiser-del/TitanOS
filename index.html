@@ -3,134 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Titan OS | Manual Fix</title>
+    <title>Titan OS | Integrated</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client"></script>
     
     <style>
-        :root { --cyan: #00f2ff; }
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; height: 100vh; }
-        #desktop { position: absolute; inset: 0; background: radial-gradient(circle, #001a1a, #000); z-index: 1; }
-        #dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.1); border: 1px solid var(--cyan); border-radius: 40px; padding: 15px 40px; display: flex; gap: 40px; z-index: 9999; }
-        .window { position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background: #0a0a0f; border: 1px solid var(--cyan); border-radius: 20px; z-index: 1000; display: flex; flex-direction: column; box-shadow: 0 0 50px #000; }
-        .win-bar { padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .btn-action { background: var(--cyan); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 15px; margin-bottom: 15px; }
-        input { background: #111 !important; border: 1px solid #333 !important; color: white !important; padding: 18px; border-radius: 12px; width: 100%; font-size: 16px; margin-bottom: 15px; outline: none; }
-        input:focus { border-color: var(--cyan) !important; }
+        :root { --n-red: #E50914; --n-black: #080808; --glass: rgba(20, 20, 20, 0.85); }
+        body { background: var(--n-black); color: white; font-family: 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden; height: 100vh; }
+        
+        /* Features from Repo: The Desktop & App Layer */
+        #desktop { position: absolute; inset: 0; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); z-index: 1; }
+        
+        /* Netflix Style Nav */
+        nav { position: fixed; top: 0; width: 100%; height: 70px; display: flex; align-items: center; padding: 0 4%; z-index: 1000; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); }
+
+        /* Repository Feature: The iPad Dock */
+        #dock { 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            background: var(--glass); backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 30px;
+            padding: 10px 30px; display: flex; gap: 25px; z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Netflix Content Rows */
+        #content-layer { position: absolute; inset: 0; overflow-y: auto; padding-top: 70px; z-index: 2; padding-bottom: 100px; }
+        .hero { height: 60vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 0 5% 50px; }
+        .row-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 15px 5%; scrollbar-width: none; }
+        .row-scroll::-webkit-scrollbar { display: none; }
+        
+        .card { min-width: 220px; aspect-ratio: 16/9; background: #181818; border-radius: 4px; flex-shrink: 0; overflow: hidden; transition: 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
+        .card:hover { transform: scale(1.05); border-color: var(--n-red); }
+
+        /* Window System (From Repo architecture) */
+        .window { 
+            position: absolute; top: 10%; left: 5%; width: 90%; height: 80%; 
+            background: #111; border-radius: 15px; border: 1px solid #333;
+            z-index: 10000; display: none; flex-direction: column; overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        }
     </style>
 </head>
 <body>
 
-<div id="desktop">
-    <div id="dock">
-        <i class="material-icons-round text-5xl text-cyan-400" onclick="Titan.open('explorer')">settings</i>
-        <i class="material-icons-round text-5xl text-cyan-400" onclick="Titan.open('cinema')">play_circle</i>
+    <div id="desktop"></div>
+
+    <nav>
+        <h1 class="text-3xl font-black italic text-[#E50914] mr-8">TITAN</h1>
+        <div class="flex gap-6 text-sm font-bold opacity-80">
+            <span onclick="UI.showContent()">Home</span>
+            <span onclick="UI.openWin('profile')">Profile</span>
+            <span onclick="UI.openWin('settings')">Settings</span>
+        </div>
+    </nav>
+
+    <div id="content-layer">
+        <div class="hero" style="background-image: linear-gradient(to top, var(--n-black), transparent), url('https://images.unsplash.com/photo-1616530940355-351fabd9524b?auto=format&fit=crop&w=1200')">
+            <div>
+                <h2 id="hero-title" class="text-5xl font-black mb-4">TITAN CINEMA</h2>
+                <button onclick="UI.resume()" class="bg-white text-black px-8 py-3 rounded font-bold flex items-center gap-2">
+                    <i class="material-icons-round">play_arrow</i> RESUME
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-8 px-[5%]"><h3 class="text-xl font-bold">Your Library</h3></div>
+        <div id="main-row" class="row-scroll">
+            <div class="text-zinc-600 italic">No media found. Use Explorer in the dock.</div>
+        </div>
     </div>
-</div>
 
-<div id="win-layer"></div>
+    <div id="win-profile" class="window">
+        <div class="p-4 border-b border-zinc-800 flex justify-between bg-zinc-900">
+            <b>User Profile</b> <span onclick="UI.closeWin('profile')" class="text-red-500">Close</span>
+        </div>
+        <div class="p-10 text-center">
+            <div class="w-24 h-24 bg-red-600 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl font-bold">T</div>
+            <h2 class="text-2xl font-bold">Titan User</h2>
+            <p class="text-zinc-500 mb-6">Device: iPad Engine v2.0</p>
+            <button onclick="localStorage.clear(); location.reload();" class="bg-zinc-800 px-6 py-2 rounded">Sign Out</button>
+        </div>
+    </div>
 
-<script>
-const Titan = {
-    apiKey: 'AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng',
-    clientId: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
-    token: localStorage.getItem('t_token'),
-    playlist: JSON.parse(localStorage.getItem('t_list') || '[]'),
+    <div id="win-settings" class="window">
+        <div class="p-4 border-b border-zinc-800 flex justify-between bg-zinc-900">
+            <b>System Settings</b> <span onclick="UI.closeWin('settings')" class="text-red-500">Close</span>
+        </div>
+        <div class="p-8">
+            <button onclick="UI.auth()" class="w-full bg-[#E50914] py-4 rounded font-bold mb-4">1. LINK GOOGLE DRIVE</button>
+            <input id="folder-url" placeholder="Paste Folder Link..." class="w-full bg-zinc-900 border border-zinc-700 p-4 rounded mb-4">
+            <button onclick="UI.mount()" class="w-full bg-white text-black py-4 rounded font-bold">2. MOUNT SHOW</button>
+        </div>
+    </div>
 
-    open(type) {
-        if(document.getElementById('win-'+type)) return;
-        const win = document.createElement('div');
-        win.id = 'win-'+type; win.className = 'window';
-        win.innerHTML = `
-            <div class="win-bar">
-                <b class="text-cyan-400 tracking-tighter">TITAN // ${type.toUpperCase()}</b>
-                <span onclick="this.closest('.window').remove()" class="text-red-500 font-bold text-2xl">✕</span>
-            </div>
-            <div id="body-${type}" class="p-6 overflow-auto flex-grow"></div>
-        `;
-        document.getElementById('win-layer').appendChild(win);
-        this.render(type);
-    },
+    <div id="dock">
+        <i class="material-icons-round text-3xl text-red-600" onclick="UI.showContent()">home</i>
+        <i class="material-icons-round text-3xl text-zinc-400" onclick="UI.openWin('profile')">account_circle</i>
+        <i class="material-icons-round text-3xl text-zinc-400" onclick="UI.openWin('settings')">settings</i>
+    </div>
 
-    render(type) {
-        const b = document.getElementById('body-'+type);
-        if(type === 'explorer') {
-            b.innerHTML = `
-                <button onclick="Titan.auth()" class="btn-action">1. LOGIN TO GOOGLE</button>
-                <div class="mt-4 p-6 border border-zinc-800 rounded-2xl bg-zinc-900/50">
-                    <p class="text-[10px] text-cyan-500 mb-3 font-black tracking-widest uppercase">Manual Folder Link (iPad Fix)</p>
-                    <input id="folder-url" placeholder="Paste Google Drive Folder Link here...">
-                    <button onclick="Titan.manualMount()" class="w-full bg-white/10 hover:bg-white/20 py-4 rounded-xl font-bold transition">MOUNT SHOW</button>
-                </div>
-                <p class="text-[10px] text-zinc-500 mt-4 text-center">Tip: Open your folder in Drive, copy the address bar link, and paste it here.</p>
-            `;
-        } else { this.syncCinema(); }
-    },
+    <div id="player-overlay" class="fixed inset-0 bg-black z-[20000] hidden flex-col">
+        <div class="p-4 flex items-center gap-4"><i class="material-icons-round text-3xl" onclick="UI.closePlayer()">arrow_back</i> <span id="v-title">Playing</span></div>
+        <iframe id="video-frame" class="flex-grow w-full border-none" allow="autoplay; fullscreen"></iframe>
+    </div>
 
-    auth() {
-        google.accounts.oauth2.initTokenClient({
-            client_id: this.clientId,
-            scope: 'https://www.googleapis.com/auth/drive.readonly',
-            callback: (res) => {
-                this.token = res.access_token;
-                localStorage.setItem('t_token', res.access_token);
-                alert("iPad Securely Linked.");
-            }
-        }).requestAccessToken();
-    },
+    <script>
+        const UI = {
+            k: 'AIzaSyDQmlHngYNWqAbveDkUCiuIdgN1ZnnZ2ng',
+            c: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
+            token: localStorage.getItem('t_token'),
+            playlist: JSON.parse(localStorage.getItem('t_list') || '[]'),
+            current: localStorage.getItem('t_last') || 0,
 
-    async manualMount() {
-        const url = document.getElementById('folder-url').value;
-        const match = url.match(/folders\/([^?/]+)/);
-        
-        if(!this.token) return alert("Please click LOGIN first!");
-        if(!match) return alert("Invalid Link! Make sure it's a Google Drive FOLDER link.");
-        
-        const folderId = match[1];
-        const apiCall = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name,mimeType)&key=${this.apiKey}`;
-        
-        try {
-            const res = await fetch(apiCall, { headers: { 'Authorization': 'Bearer ' + this.token } });
-            const data = await res.json();
-            
-            if(data.error) throw new Error(data.error.message);
-            
-            this.playlist = data.files.filter(f => f.mimeType.includes('video'))
-                .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
-            
-            localStorage.setItem('t_list', JSON.stringify(this.playlist));
-            alert("SUCCESS: Loaded " + this.playlist.length + " Episodes!");
-        } catch (e) { alert("Titan Error: " + e.message); }
-    },
+            init() { if(this.playlist.length > 0) this.render(); },
+            openWin(id) { document.getElementById('win-'+id).style.display = 'flex'; },
+            closeWin(id) { document.getElementById('win-'+id).style.display = 'none'; },
+            showContent() { document.querySelectorAll('.window').forEach(w => w.style.display = 'none'); },
 
-    syncCinema() {
-        const b = document.getElementById('body-cinema');
-        if(!b) return;
-        b.innerHTML = `
-            <div class="bg-black aspect-video rounded-2xl mb-6 flex items-center justify-center border border-zinc-800 overflow-hidden shadow-2xl">
-                <iframe id="player" class="w-full h-full hidden" allow="autoplay; fullscreen"></iframe>
-                <div id="splash" class="text-zinc-800 font-black text-5xl italic tracking-tighter">TITAN</div>
-            </div>
-            <div id="ep-list" class="space-y-3 pb-10"></div>
-        `;
-        const list = b.querySelector('#ep-list');
-        if(this.playlist.length === 0) list.innerHTML = `<div class="text-center text-zinc-600 py-10">No episodes mounted. Use Explorer.</div>`;
-        
-        this.playlist.forEach((ep, i) => {
-            const row = document.createElement('div');
-            row.className = "p-5 bg-zinc-900/80 rounded-2xl border border-zinc-800 active:border-cyan-500 active:bg-cyan-950/20 transition-all";
-            row.innerHTML = `<div class="text-cyan-500 text-[10px] font-black uppercase mb-1">Episode ${i+1}</div><div class="text-sm font-medium truncate">${ep.name}</div>`;
-            row.onclick = () => {
-                document.getElementById('splash').style.display = 'none';
-                const p = document.getElementById('player');
-                p.src = `https://drive.google.com/file/d/${ep.id}/preview`;
-                p.classList.remove('hidden');
-            };
-            list.appendChild(row);
-        });
-    }
-};
-</script>
+            auth() {
+                google.accounts.oauth2.initTokenClient({
+                    client_id: this.clientId,
+                    scope: 'https://www.googleapis.com/auth/drive.readonly',
+                    callback: (r) => { this.token = r.access_token; localStorage.setItem('t_token', r.access_token); alert("Linked!"); }
+                }).requestAccessToken();
+            },
+
+            async mount() {
+                const url = document.getElementById('folder-url').value;
+                const mid = url.match(/folders\/([^?/]+)/);
+                if(!this.token || !mid) return alert("Setup Auth First!");
+                const r = await fetch(`https://www.googleapis.com/drive/v3/files?q='${mid[1]}'+in+parents&fields=files(id,name)&key=${this.k}`, { headers: { 'Authorization': 'Bearer ' + this.token }});
+                const d = await r.json();
+                this.playlist = d.files.sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+                localStorage.setItem('t_list', JSON.stringify(this.playlist));
+                this.render(); this.closeWin('settings');
+            },
+
+            render() {
+                const row = document.getElementById('main-row');
+                row.innerHTML = "";
+                this.playlist.forEach((ep, i) => {
+                    row.innerHTML += `<div class="card" onclick="UI.play(${i})">
+                        <img src="https://picsum.photos/seed/${ep.id}/300/160" class="w-full h-full object-cover opacity-50">
+                        <div class="p-2 text-[10px] font-bold truncate">${ep.name}</div>
+                    </div>`;
+                });
+                document.getElementById('hero-title').innerText = "RESUME: EP " + (parseInt(this.current) + 1);
+            },
+
+            play(idx) {
+                this.current = idx;
+                localStorage.setItem('t_last', idx);
+                document.getElementById('player-overlay').classList.remove('hidden');
+                document.getElementById('video-frame').src = `https://drive.google.com/file/d/${this.playlist[idx].id}/preview`;
+            },
+
+            resume() { this.play(this.current); },
+            closePlayer() { document.getElementById('player-overlay').classList.add('hidden'); document.getElementById('video-frame').src = ""; }
+        };
+        window.onload = () => UI.init();
+    </script>
 </body>
 </html>
