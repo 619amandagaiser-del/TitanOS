@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Titan OS | Manual Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Titan OS | Manual Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client"></script>
@@ -13,10 +13,11 @@
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; height: 100vh; }
         #desktop { position: absolute; inset: 0; background: radial-gradient(circle, #001a1a, #000); z-index: 1; }
         #dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.1); border: 1px solid var(--cyan); border-radius: 40px; padding: 15px 40px; display: flex; gap: 40px; z-index: 9999; }
-        .window { position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background: #0a0a0f; border: 1px solid var(--cyan); border-radius: 20px; z-index: 1000; display: flex; flex-direction: column; }
+        .window { position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background: #0a0a0f; border: 1px solid var(--cyan); border-radius: 20px; z-index: 1000; display: flex; flex-direction: column; box-shadow: 0 0 50px #000; }
         .win-bar { padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .btn-action { background: var(--cyan); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        input { background: #111 !important; border: 1px solid #333 !important; color: white !important; padding: 15px; border-radius: 10px; width: 100%; margin-bottom: 10px; }
+        .btn-action { background: var(--cyan); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 15px; margin-bottom: 15px; }
+        input { background: #111 !important; border: 1px solid #333 !important; color: white !important; padding: 18px; border-radius: 12px; width: 100%; font-size: 16px; margin-bottom: 15px; outline: none; }
+        input:focus { border-color: var(--cyan) !important; }
     </style>
 </head>
 <body>
@@ -42,7 +43,10 @@ const Titan = {
         const win = document.createElement('div');
         win.id = 'win-'+type; win.className = 'window';
         win.innerHTML = `
-            <div class="win-bar"><b>${type.toUpperCase()}</b><span onclick="this.closest('.window').remove()" class="text-red-500 text-xl">✕</span></div>
+            <div class="win-bar">
+                <b class="text-cyan-400 tracking-tighter">TITAN // ${type.toUpperCase()}</b>
+                <span onclick="this.closest('.window').remove()" class="text-red-500 font-bold text-2xl">✕</span>
+            </div>
             <div id="body-${type}" class="p-6 overflow-auto flex-grow"></div>
         `;
         document.getElementById('win-layer').appendChild(win);
@@ -54,11 +58,12 @@ const Titan = {
         if(type === 'explorer') {
             b.innerHTML = `
                 <button onclick="Titan.auth()" class="btn-action">1. LOGIN TO GOOGLE</button>
-                <div class="mt-4 p-4 border border-zinc-800 rounded-xl">
-                    <p class="text-xs text-cyan-500 mb-2 font-bold">MANUAL FOLDER MOUNT (iPad Fix)</p>
-                    <input id="folder-url" placeholder="Paste Google Drive Folder Link Here...">
-                    <button onclick="Titan.manualMount()" class="w-full bg-zinc-800 py-3 rounded-lg font-bold">MOUNT FOLDER</button>
+                <div class="mt-4 p-6 border border-zinc-800 rounded-2xl bg-zinc-900/50">
+                    <p class="text-[10px] text-cyan-500 mb-3 font-black tracking-widest uppercase">Manual Folder Link (iPad Fix)</p>
+                    <input id="folder-url" placeholder="Paste Google Drive Folder Link here...">
+                    <button onclick="Titan.manualMount()" class="w-full bg-white/10 hover:bg-white/20 py-4 rounded-xl font-bold transition">MOUNT SHOW</button>
                 </div>
+                <p class="text-[10px] text-zinc-500 mt-4 text-center">Tip: Open your folder in Drive, copy the address bar link, and paste it here.</p>
             `;
         } else { this.syncCinema(); }
     },
@@ -70,7 +75,7 @@ const Titan = {
             callback: (res) => {
                 this.token = res.access_token;
                 localStorage.setItem('t_token', res.access_token);
-                alert("Auth Success!");
+                alert("iPad Securely Linked.");
             }
         }).requestAccessToken();
     },
@@ -78,7 +83,9 @@ const Titan = {
     async manualMount() {
         const url = document.getElementById('folder-url').value;
         const match = url.match(/folders\/([^?/]+)/);
-        if(!match || !this.token) return alert("Please Login & use a valid Folder Link!");
+        
+        if(!this.token) return alert("Please click LOGIN first!");
+        if(!match) return alert("Invalid Link! Make sure it's a Google Drive FOLDER link.");
         
         const folderId = match[1];
         const apiCall = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name,mimeType)&key=${this.apiKey}`;
@@ -86,27 +93,41 @@ const Titan = {
         try {
             const res = await fetch(apiCall, { headers: { 'Authorization': 'Bearer ' + this.token } });
             const data = await res.json();
-            this.playlist = data.files.filter(f => f.mimeType.includes('video')).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+            
+            if(data.error) throw new Error(data.error.message);
+            
+            this.playlist = data.files.filter(f => f.mimeType.includes('video'))
+                .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+            
             localStorage.setItem('t_list', JSON.stringify(this.playlist));
-            alert("Success! Found " + this.playlist.length + " episodes.");
-        } catch (e) { alert("Error mounting: " + e.message); }
+            alert("SUCCESS: Loaded " + this.playlist.length + " Episodes!");
+        } catch (e) { alert("Titan Error: " + e.message); }
     },
 
     syncCinema() {
         const b = document.getElementById('body-cinema');
         if(!b) return;
-        b.innerHTML = `<div class="bg-black aspect-video rounded-xl mb-6 flex items-center justify-center border border-zinc-800"><iframe id="player" class="w-full h-full hidden" allow="autoplay; fullscreen"></iframe><div id="splash" class="text-zinc-900 font-black text-4xl">TITAN</div></div><div id="ep-list" class="space-y-2"></div>`;
+        b.innerHTML = `
+            <div class="bg-black aspect-video rounded-2xl mb-6 flex items-center justify-center border border-zinc-800 overflow-hidden shadow-2xl">
+                <iframe id="player" class="w-full h-full hidden" allow="autoplay; fullscreen"></iframe>
+                <div id="splash" class="text-zinc-800 font-black text-5xl italic tracking-tighter">TITAN</div>
+            </div>
+            <div id="ep-list" class="space-y-3 pb-10"></div>
+        `;
+        const list = b.querySelector('#ep-list');
+        if(this.playlist.length === 0) list.innerHTML = `<div class="text-center text-zinc-600 py-10">No episodes mounted. Use Explorer.</div>`;
+        
         this.playlist.forEach((ep, i) => {
             const row = document.createElement('div');
-            row.className = "p-4 bg-zinc-900 rounded-xl border border-zinc-800 active:border-cyan-500";
-            row.innerHTML = `<div class="text-cyan-500 text-[10px] font-bold">EPISODE ${i+1}</div><div class="text-xs truncate">${ep.name}</div>`;
+            row.className = "p-5 bg-zinc-900/80 rounded-2xl border border-zinc-800 active:border-cyan-500 active:bg-cyan-950/20 transition-all";
+            row.innerHTML = `<div class="text-cyan-500 text-[10px] font-black uppercase mb-1">Episode ${i+1}</div><div class="text-sm font-medium truncate">${ep.name}</div>`;
             row.onclick = () => {
                 document.getElementById('splash').style.display = 'none';
                 const p = document.getElementById('player');
                 p.src = `https://drive.google.com/file/d/${ep.id}/preview`;
                 p.classList.remove('hidden');
             };
-            b.querySelector('#ep-list').appendChild(row);
+            list.appendChild(row);
         });
     }
 };
