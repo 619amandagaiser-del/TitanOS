@@ -3,131 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenith OS | Starship Edition</title>
+    <title>Zenith OS | Starship v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        :root { --accent: #8a2be2; --neon: #ae54ff; }
-        body {
-            margin: 0; padding: 0; height: 100vh; overflow: hidden;
-            background: radial-gradient(circle at top left, #120032 0%, #050505 90%);
-            font-family: 'Inter', sans-serif; color: #fff;
+        :root { --accent: #8a2be2; --neon: #ae54ff; --bg: #050505; }
+        body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; }
+
+        /* Dynamic Space Background */
+        #star-field { position: fixed; inset: 0; background: radial-gradient(circle at center, #1a0033 0%, #050505 100%); z-index: 0; }
+        
+        /* Boot Terminal */
+        #boot-screen {
+            position: fixed; inset: 0; background: #000; z-index: 99999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: 'Courier New', monospace; color: var(--neon);
         }
 
-        #desktop { position: absolute; inset: 0; z-index: 1; }
-        
-        /* Starship Window UI */
+        /* Window System */
         .window {
-            position: absolute; background: #0d0d14;
-            border: 1px solid rgba(138, 43, 226, 0.4); border-radius: 12px;
-            display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-            overflow: hidden; z-index: 10;
+            position: absolute; background: rgba(13, 13, 20, 0.8);
+            backdrop-filter: blur(15px); border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 16px; display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .win-bar {
-            height: 40px; background: linear-gradient(90deg, #1a0033, #0d0d14);
+            height: 45px; background: rgba(255,255,255,0.03);
             display: flex; align-items: center; padding: 0 15px; cursor: grab;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .win-title { font-size: 11px; font-weight: 800; color: var(--neon); flex-grow: 1; text-transform: uppercase; letter-spacing: 1px; }
-        .win-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; margin-left: 8px; }
+        .win-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; flex-grow: 1; opacity: 0.8; }
+        .win-controls { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
+        .dot-close { background: #ff5555; } .dot-close:hover { background: #ff2222; box-shadow: 0 0 10px #ff2222; }
 
-        .win-content { flex-grow: 1; background: #000; position: relative; }
-        iframe { width: 100%; height: 100%; border: none; }
-        
-        /* Glassmorphic Dock */
-        #dock {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(18, 0, 50, 0.5); backdrop-filter: blur(25px);
-            border: 1px solid rgba(174, 84, 255, 0.2);
-            padding: 12px 20px; border-radius: 24px; display: flex; gap: 18px; z-index: 9999;
+        /* Glass Dock */
+        #dock-container {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px;
+            padding: 10px 20px; display: flex; gap: 15px; align-items: center;
         }
-        .dock-item {
-            width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border-radius: 12px;
+        .dock-btn {
+            width: 50px; height: 50px; border-radius: 15px; display: flex; 
+            align-items: center; justify-content: center; cursor: pointer;
+            transition: 0.3s; position: relative;
         }
-        .dock-item:hover { transform: translateY(-12px) scale(1.2); background: rgba(255,255,255,0.1); }
-        .dock-item i { font-size: 28px; color: #fff; text-shadow: 0 0 10px var(--neon); }
+        .dock-btn:hover { transform: translateY(-10px) scale(1.1); background: rgba(138, 43, 226, 0.2); }
+        .dock-btn i { font-size: 26px; }
+        .active-indicator { position: absolute; bottom: -5px; width: 4px; height: 4px; background: var(--neon); border-radius: 50%; display: none; }
+
+        /* System Widgets */
+        #top-bar {
+            position: fixed; top: 0; width: 100%; height: 30px; 
+            background: rgba(0,0,0,0.2); backdrop-filter: blur(5px);
+            z-index: 9998; display: flex; align-items: center; padding: 0 20px; font-size: 12px;
+        }
 
         #panic-layer { position: fixed; inset: 0; background: white; z-index: 1000000; display: none; }
     </style>
 </head>
 <body onload="Kernel.boot()">
 
-    <div id="panic-layer">
-        <iframe src="https://classroom.google.com" style="width:100%; height:100%;"></iframe>
+    <div id="boot-screen">
+        <div id="boot-log" style="width: 300px; font-size: 12px;"></div>
+        <div style="margin-top: 20px; width: 200px; height: 2px; background: #333; overflow: hidden;">
+            <div id="boot-progress" style="width: 0%; height: 100%; background: var(--neon);"></div>
+        </div>
+    </div>
+
+    <div id="panic-layer"><iframe src="https://classroom.google.com" class="w-full h-full"></iframe></div>
+    <div id="star-field"></div>
+    
+    <div id="top-bar">
+        <span style="font-weight: 800; color: var(--neon);">ZENITH KERNEL 2.0</span>
+        <div style="flex-grow: 1;"></div>
+        <div id="clock">00:00:00</div>
     </div>
 
     <div id="desktop"></div>
 
-    <div id="dock">
-        <div class="dock-item" onclick="Kernel.open('home')"><i class="material-icons-round">rocket_launch</i></div>
-        <div class="dock-item" onclick="Kernel.open('tv')"><i class="material-icons-round">live_tv</i></div>
-        <div class="dock-item" onclick="Kernel.open('ai')"><i class="material-icons-round">psychology</i></div>
-        <div class="dock-item" onclick="Kernel.open('profile')"><i class="material-icons-round">account_circle</i></div>
-        <div style="width:1px; height:30px; background:rgba(255,255,255,0.1); align-self:center;"></div>
-        <div class="dock-item" onclick="Kernel.authDrive()" title="Link Google Drive"><i class="material-icons-round" style="color:#4285F4">cloud_sync</i></div>
+    <div id="dock-container">
+        <div class="dock-btn" onclick="Kernel.open('home')" title="Dashboard"><i class="material-icons-round">grid_view</i></div>
+        <div class="dock-btn" onclick="Kernel.open('ai')" title="Orbit AI"><i class="material-icons-round" style="color: #ae54ff;">psychology</i></div>
+        <div class="dock-btn" onclick="Kernel.open('tv')" title="Star TV"><i class="material-icons-round">smart_display</i></div>
+        <div class="dock-btn" onclick="Kernel.open('profile')" title="Pilot Profile"><i class="material-icons-round">fingerprint</i></div>
+        <div style="width:1px; height:30px; background:rgba(255,255,255,0.1);"></div>
+        <div class="dock-btn" onclick="Kernel.authDrive()" title="Connect Cloud Storage"><i class="material-icons-round" style="color: #4285F4;">cloud_sync</i></div>
     </div>
 
     <script src="https://accounts.google.com/gsi/client"></script>
-    
     <script>
         const Kernel = {
             z: 100,
             DRIVE_ACCESS_TOKEN: null,
-            // UPDATED CLIENT ID
             CLIENT_ID: '106130595767-hlvoakq65984eu1fc9mq0h3951oll8qs.apps.googleusercontent.com',
 
             apps: {
-                'home': { title: 'Dashboard', url: 'start.html', w: 900, h: 600 },
-                'tv': { title: 'Star TV', url: 'tv.html', w: 1000, h: 700 },
-                'profile': { title: 'User Profile', url: 'profile.html', w: 600, h: 750 },
-                'ai': { title: 'Orbit AI Pro', url: 'ai.html', w: 500, h: 700 }
+                'home': { title: 'Navigation', url: 'start.html', w: 900, h: 600 },
+                'ai': { title: 'Orbit AI Terminal', url: 'ai.html', w: 550, h: 750 },
+                'tv': { title: 'StarStream', url: 'tv.html', w: 1100, h: 700 },
+                'profile': { title: 'Pilot ID', url: 'profile.html', w: 500, h: 650 }
             },
 
-            boot() {
-                this.open('home');
-                window.addEventListener('keydown', e => { 
-                    if(e.key === '`') document.getElementById('panic-layer').style.display = 'block'; 
-                });
+            async boot() {
+                const logs = ["INITIALIZING KERNEL...", "MOUNTING CLOUD MODULES...", "ESTABLISHING NEURAL LINK...", "READY."];
+                const logEl = document.getElementById('boot-log');
+                const prog = document.getElementById('boot-progress');
 
+                for(let i=0; i<logs.length; i++) {
+                    logEl.innerHTML += `<div>> ${logs[i]}</div>`;
+                    prog.style.width = ((i+1) * 25) + "%";
+                    await new Promise(r => setTimeout(r, 600));
+                }
+
+                document.getElementById('boot-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('boot-screen').style.display = 'none';
+                    this.open('home');
+                    this.initClock();
+                }, 500);
+
+                // Setup Google OAuth popup client
                 this.tokenClient = google.accounts.oauth2.initTokenClient({
                     client_id: this.CLIENT_ID,
                     scope: 'https://www.googleapis.com/auth/drive.file',
-                    callback: (tokenResponse) => {
-                        this.DRIVE_ACCESS_TOKEN = tokenResponse.access_token;
-                        console.log("Cloud Bridge Established.");
+                    callback: (res) => {
+                        this.DRIVE_ACCESS_TOKEN = res.access_token;
+                        this.notify("Cloud Storage Link Established");
                     },
+                });
+
+                // Panic Key (`)
+                window.addEventListener('keydown', e => { 
+                    if(e.key === '`') document.getElementById('panic-layer').style.display = 'block'; 
                 });
             },
 
-            authDrive() {
-                this.tokenClient.requestAccessToken({prompt: 'consent'});
+            notify(msg) {
+                const n = document.createElement('div');
+                n.style = "position:fixed; top:40px; right:20px; background:rgba(138,43,226,0.8); padding:10px 20px; border-radius:10px; z-index:100000; font-size:12px; border:1px solid #ae54ff;";
+                n.innerText = msg;
+                document.body.appendChild(n);
+                setTimeout(() => n.remove(), 3000);
             },
+
+            initClock() {
+                setInterval(() => {
+                    document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+                }, 1000);
+            },
+
+            authDrive() { this.tokenClient.requestAccessToken({prompt: 'consent'}); },
 
             open(id) {
                 const app = this.apps[id];
                 const win = document.createElement('div');
                 win.className = 'window';
                 win.style.width = app.w + 'px'; win.style.height = app.h + 'px';
-                win.style.top = '10%'; win.style.left = '15%';
+                win.style.top = '100px'; win.style.left = '200px';
                 win.style.zIndex = ++this.z;
 
                 win.innerHTML = `
                     <div class="win-bar">
                         <div class="win-title">${app.title}</div>
-                        <div class="win-dot" style="background:#ffbd2e;"></div>
-                        <div class="win-dot" style="background:#ff5f56;" onclick="this.closest('.window').remove()"></div>
+                        <div class="win-controls">
+                            <div class="dot" style="background:#ffbd2e;" onclick="Kernel.maximize(this)"></div>
+                            <div class="dot dot-close" onclick="this.closest('.window').remove()"></div>
+                        </div>
                     </div>
-                    <div class="win-content"><iframe src="${app.url}"></iframe></div>
+                    <div class="win-content" style="flex-grow:1;"><iframe src="${app.url}" style="width:100%; height:100%; border:none;"></iframe></div>
                 `;
                 
                 win.onmousedown = () => win.style.zIndex = ++this.z;
-                this.drag(win);
+                this.makeDraggable(win);
                 document.getElementById('desktop').appendChild(win);
             },
 
-            drag(el) {
+            maximize(btn) {
+                const win = btn.closest('.window');
+                win.style.width = '100vw'; win.style.height = 'calc(100vh - 80px)';
+                win.style.top = '30px'; win.style.left = '0';
+            },
+
+            makeDraggable(el) {
                 const bar = el.querySelector('.win-bar');
                 let x=0, y=0, x1=0, y1=0;
                 bar.onmousedown = (e) => {
