@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenith OS | Media Master</title>
+    <title>Zenith OS | All-In-One</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client"></script>
@@ -11,7 +10,7 @@
     <style>
         :root { --neon: #ae54ff; --bg: #050505; }
         body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; }
-        .overlay { position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; transition: 0.8s; }
+        .overlay { position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
         #desktop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1a0033 0%, #050505 100%); z-index: 1; }
         
         /* Window Styling */
@@ -21,29 +20,25 @@
         .win-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; margin-left: 8px; }
 
         /* Dock Styling */
-        #dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 10px 20px; display: flex; gap: 15px; z-index: 9999; }
-        .dock-item { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border-radius: 15px; }
+        #dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 10px 20px; display: flex; gap: 15px; z-index: 9999; }
+        .dock-item { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border-radius: 15px; background: rgba(255,255,255,0.02); }
         .dock-item:hover { transform: translateY(-10px); background: rgba(138, 43, 226, 0.2); }
-
-        /* Marquee Animation */
-        .marquee { white-space: nowrap; overflow: hidden; position: relative; }
-        .marquee span { display: inline-block; padding-left: 100%; animation: marquee 10s linear infinite; }
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
     </style>
 </head>
 <body onload="Kernel.init()">
 
     <div id="login-screen" class="overlay">
-        <i class="material-icons-round text-6xl mb-6 text-purple-500">live_tv</i>
+        <i class="material-icons-round text-6xl mb-6 text-purple-500">space_dashboard</i>
         <h1 class="tracking-[10px] text-sm mb-8">ZENITH MEDIA OS</h1>
-        <div id="google-login-btn"></div>
+        <div id="google-login-btn" class="mb-4"></div>
+        <button onclick="Kernel.forceBoot()" class="text-[10px] text-gray-600 hover:text-purple-400 uppercase tracking-widest transition">Skip to Offline Mode (Debug)</button>
     </div>
 
     <div id="desktop"></div>
 
     <div id="dock">
-        <div class="dock-item" onclick="Kernel.open('files')" title="Series Linker"><i class="material-icons-round text-yellow-400">folder_special</i></div>
-        <div class="dock-item" onclick="Kernel.open('tv')" title="Cinema"><i class="material-icons-round text-blue-400">movie_filter</i></div>
+        <div class="dock-item" onclick="Kernel.open('files')" title="Explorer"><i class="material-icons-round text-yellow-400">folder_open</i></div>
+        <div class="dock-item" onclick="Kernel.open('tv')" title="Cinema"><i class="material-icons-round text-blue-400">play_circle</i></div>
     </div>
 
     <script>
@@ -55,42 +50,55 @@
 
         const Kernel = {
             z: 100,
-            user: null,
             token: null,
-            playlist: [],
-            currentIndex: 0,
+            playlist: [], 
 
             init() {
-                google.accounts.id.initialize({ client_id: window.DRIVE_CONFIG.clientId, callback: (res) => this.handleAuth(res) });
-                google.accounts.id.renderButton(document.getElementById("google-login-btn"), { theme: "dark", shape: "pill" });
-                gapi.load('client:picker', () => gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'));
+                // Initialize Google Sign-In
+                try {
+                    google.accounts.id.initialize({ 
+                        client_id: window.DRIVE_CONFIG.clientId, 
+                        callback: (res) => this.handleAuth(res) 
+                    });
+                    google.accounts.id.renderButton(document.getElementById("google-login-btn"), { theme: "dark", shape: "pill" });
+                    
+                    // Load GAPI for the Picker
+                    gapi.load('client:picker', () => {
+                        gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+                    });
+                } catch(e) { console.error("Google blocked. Check browser privacy settings."); }
             },
 
             handleAuth(res) {
-                this.user = JSON.parse(atob(res.credential.split('.')[1]));
                 document.getElementById('login-screen').style.display = 'none';
-                
                 google.accounts.oauth2.initTokenClient({
                     client_id: window.DRIVE_CONFIG.clientId,
                     scope: 'https://www.googleapis.com/auth/drive.readonly',
-                    callback: (t) => { this.token = t.access_token; this.open('files'); }
+                    callback: (t) => { 
+                        this.token = t.access_token; 
+                        this.open('files'); 
+                    }
                 }).requestAccessToken();
             },
 
+            forceBoot() { document.getElementById('login-screen').style.display = 'none'; },
+
             open(type) {
+                if(document.getElementById('win-' + type)) return;
+
                 const win = document.createElement('div');
                 win.className = 'window';
                 win.id = 'win-' + type;
-                win.style.width = type === 'tv' ? '1000px' : '600px';
-                win.style.height = '650px';
-                win.style.top = '40px'; win.style.left = '80px';
+                win.style.width = type === 'tv' ? '900px' : '500px';
+                win.style.height = '550px';
+                win.style.top = '60px'; win.style.left = '100px';
                 win.style.zIndex = ++this.z;
 
                 let content = (type === 'files') ? this.getFilesHTML() : this.getTVHTML();
 
                 win.innerHTML = `
                     <div class="win-bar">
-                        <div class="win-title">${type.toUpperCase()} INTERFACE</div>
+                        <div class="win-title">${type.toUpperCase()}</div>
                         <div class="win-dot" style="background:#ff5f56;" onclick="this.closest('.window').remove()"></div>
                     </div>
                     <div style="flex-grow:1; background:#000;">
@@ -99,90 +107,75 @@
                 `;
                 this.drag(win);
                 document.getElementById('desktop').appendChild(win);
+                if(type === 'tv') setTimeout(() => this.syncCinema(), 500);
             },
 
             getFilesHTML() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
                 <body class="bg-[#0d0d14] text-white p-6 font-sans">
-                    <div class="flex flex-col gap-4">
-                        <h2 class="text-xl font-bold">SERIES LINKER</h2>
-                        <input id="show-name" type="text" placeholder="Enter Show Name (e.g. Naruto)" class="bg-white/10 p-3 rounded border border-white/20 text-sm outline-none focus:border-purple-500">
-                        <button onclick="parent.Kernel.pickSeries(window)" class="bg-purple-600 p-3 rounded font-bold text-xs uppercase hover:bg-purple-400">Select Show Folder</button>
+                    <div class="border-b border-white/10 pb-4 mb-4">
+                        <input id="show" placeholder="Show Name (e.g. Anime S1)" class="bg-white/5 p-3 w-full rounded mb-3 outline-none border border-white/10 text-sm">
+                        <button onclick="parent.Kernel.pickFolder(window)" class="w-full bg-purple-600 p-3 rounded font-black text-[10px] tracking-widest hover:bg-purple-500 transition">MOUNT SERIES FOLDER</button>
                     </div>
-                    <div id="file-list" class="mt-8 space-y-2"></div>
+                    <div id="status" class="text-[10px] uppercase text-purple-400 font-bold mb-4"></div>
+                    <div id="file-list" class="space-y-1"></div>
                 </body></html>`;
             },
 
             getTVHTML() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
-                <body class="bg-black text-white h-screen flex flex-col">
-                    <div class="flex-grow relative bg-black">
-                        <iframe id="player" class="w-full h-full" allow="autoplay; fullscreen"></iframe>
+                <body class="bg-black text-white h-screen flex flex-col overflow-hidden">
+                    <div class="flex-grow bg-[#050505] flex items-center justify-center relative">
+                        <iframe id="player" class="w-full h-full" style="display:none;" allow="autoplay; fullscreen"></iframe>
+                        <div id="no-vid" class="text-gray-800 font-black text-4xl tracking-tighter">ZENITH CINEMA</div>
                     </div>
-                    <div id="playlist" class="h-40 bg-[#0d0d14] border-t border-purple-900/40 p-4 flex gap-4 overflow-x-auto"></div>
+                    <div id="list" class="h-32 bg-[#0d0d14] p-4 flex gap-4 overflow-x-auto border-t border-white/5"></div>
                 </body></html>`;
             },
 
-            pickSeries(childWin) {
-                const showName = childWin.document.getElementById('show-name').value || "Unnamed Show";
-                const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS);
+            pickFolder(childWin) {
+                const name = childWin.document.getElementById('show').value || "Series";
                 new google.picker.PickerBuilder()
                     .setAppId(window.DRIVE_CONFIG.appId)
                     .setOAuthToken(this.token)
-                    .addView(view)
+                    .setDeveloperKey(window.DRIVE_CONFIG.apiKey)
+                    .addView(new google.picker.DocsView(google.picker.ViewId.FOLDERS))
                     .setCallback(async (data) => {
                         if (data.action == google.picker.Action.PICKED) {
-                            this.scanSeries(data.docs[0].id, showName, childWin);
+                            const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${data.docs[0].id}'+in+parents&fields=files(id,name,mimeType)&key=${window.DRIVE_CONFIG.apiKey}`, {
+                                headers: { 'Authorization': 'Bearer ' + this.token }
+                            });
+                            const files = await res.json();
+                            this.playlist = files.files.filter(f => f.mimeType.includes('video'))
+                                .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}))
+                                .map(f => ({ id: f.id, name: f.name, show: name }));
+                            
+                            childWin.document.getElementById('status').innerText = "✓ " + this.playlist.length + " EPISODES FOUND";
+                            this.syncCinema();
                         }
                     }).build().setVisible(true);
             },
 
-            async scanSeries(folderId, showName, childWin) {
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name,mimeType)&key=${window.DRIVE_CONFIG.apiKey}`, {
-                    headers: { 'Authorization': 'Bearer ' + this.token }
-                });
-                const data = await res.json();
-                
-                // Numerical Sorting Logic (Smart Episode Order)
-                const eps = data.files.filter(f => f.mimeType.includes('video'))
-                    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
-
-                const list = childWin.document.getElementById('file-list');
-                list.innerHTML = `<h3 class="text-purple-400 text-[10px] font-black mb-2">READY TO MOUNT: ${eps.length} EPISODES</h3>`;
-                
-                eps.forEach((file, i) => {
-                    const row = childWin.document.createElement('div');
-                    row.className = "flex justify-between p-2 bg-white/5 rounded text-xs items-center border border-transparent hover:border-purple-500";
-                    row.innerHTML = `<span>${i+1}. ${file.name}</span> <span class="text-green-500 font-bold">✓</span>`;
-                    list.appendChild(row);
-                });
-
-                // Add to Cinema Master Playlist
-                this.playlist = eps.map(e => ({ id: e.id, name: e.name, show: showName }));
-                this.notify(`Mounted ${showName} - ${eps.length} Episodes`);
-                if(document.getElementById('frame-tv')) this.updateCinemaUI();
-            },
-
-            updateCinemaUI() {
-                const tv = document.getElementById('frame-tv').contentWindow;
-                const list = tv.document.getElementById('playlist');
+            syncCinema() {
+                const frame = document.getElementById('frame-tv');
+                if(!frame) return;
+                const win = frame.contentWindow;
+                const list = win.document.getElementById('list');
                 list.innerHTML = "";
                 
                 this.playlist.forEach((ep, i) => {
-                    const card = tv.document.createElement('div');
-                    card.className = "min-w-[160px] bg-white/5 p-3 rounded border border-white/10 hover:bg-purple-600/20 cursor-pointer transition";
-                    card.innerHTML = `<div class="text-[10px] text-purple-400 font-bold mb-1">${ep.show.toUpperCase()}</div>
-                                      <div class="text-xs truncate">${ep.name}</div>
-                                      <div class="text-[9px] mt-2 opacity-50">EPISODE ${i+1}</div>`;
+                    const card = win.document.createElement('div');
+                    card.className = "min-w-[140px] bg-white/5 border border-white/10 p-3 rounded cursor-pointer hover:bg-purple-600/20";
+                    card.innerHTML = `<div class='text-[9px] text-purple-400 font-black'>EP ${i+1}</div><div class='text-[11px] truncate mt-1'>${ep.name}</div>`;
                     card.onclick = () => {
-                        this.currentIndex = i;
-                        tv.document.getElementById('player').src = `https://drive.google.com/file/d/${ep.id}/preview?autoplay=1`;
+                        win.document.getElementById('no-vid').style.display = 'none';
+                        const p = win.document.getElementById('player');
+                        p.src = `https://drive.google.com/file/d/${ep.id}/preview`;
+                        p.style.display = "block";
                     };
                     list.appendChild(card);
                 });
             },
-
-            notify(msg) { console.log("OS:", msg); },
 
             drag(el) {
                 const bar = el.querySelector('.win-bar');
