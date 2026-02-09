@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenith OS | Media Server Pro</title>
+    <title>Zenith OS | Media Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client"></script>
@@ -13,29 +13,37 @@
         body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; }
         .overlay { position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; transition: 0.8s; }
         #desktop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1a0033 0%, #050505 100%); z-index: 1; }
-        .window { position: absolute; background: rgba(13, 13, 20, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 18px; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.8); overflow: hidden; }
-        .win-bar { height: 40px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; padding: 0 15px; cursor: grab; }
+        
+        /* Window Styling */
+        .window { position: absolute; background: rgba(13, 13, 20, 0.98); backdrop-filter: blur(25px); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 18px; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.8); overflow: hidden; }
+        .win-bar { height: 40px; background: rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 15px; cursor: grab; }
         .win-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; flex-grow: 1; color: var(--neon); }
         .win-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; margin-left: 8px; }
-        #dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 10px 20px; display: flex; gap: 15px; z-index: 9999; }
+
+        /* Dock Styling */
+        #dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.05); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 10px 20px; display: flex; gap: 15px; z-index: 9999; }
         .dock-item { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border-radius: 15px; }
         .dock-item:hover { transform: translateY(-10px); background: rgba(138, 43, 226, 0.2); }
+
+        /* Marquee Animation */
+        .marquee { white-space: nowrap; overflow: hidden; position: relative; }
+        .marquee span { display: inline-block; padding-left: 100%; animation: marquee 10s linear infinite; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
     </style>
 </head>
 <body onload="Kernel.init()">
 
     <div id="login-screen" class="overlay">
-        <i class="material-icons-round text-6xl mb-6 text-purple-500">folder_shared</i>
-        <h1 class="tracking-[10px] text-sm mb-8">ZENITH MEDIA AUTH</h1>
+        <i class="material-icons-round text-6xl mb-6 text-purple-500">live_tv</i>
+        <h1 class="tracking-[10px] text-sm mb-8">ZENITH MEDIA OS</h1>
         <div id="google-login-btn"></div>
     </div>
 
     <div id="desktop"></div>
 
     <div id="dock">
-        <div class="dock-item" onclick="Kernel.open('files')" title="File Explorer"><i class="material-icons-round text-yellow-400">folder</i></div>
-        <div class="dock-item" onclick="Kernel.open('tv')" title="Cinema"><i class="material-icons-round text-blue-400">movie</i></div>
-        <div class="dock-item" onclick="Kernel.open('ai')" title="Orbit AI"><i class="material-icons-round text-purple-400">psychology</i></div>
+        <div class="dock-item" onclick="Kernel.open('files')" title="Series Linker"><i class="material-icons-round text-yellow-400">folder_special</i></div>
+        <div class="dock-item" onclick="Kernel.open('tv')" title="Cinema"><i class="material-icons-round text-blue-400">movie_filter</i></div>
     </div>
 
     <script>
@@ -49,46 +57,40 @@
             z: 100,
             user: null,
             token: null,
-            currentPlaylist: [],
+            playlist: [],
+            currentIndex: 0,
 
             init() {
                 google.accounts.id.initialize({ client_id: window.DRIVE_CONFIG.clientId, callback: (res) => this.handleAuth(res) });
                 google.accounts.id.renderButton(document.getElementById("google-login-btn"), { theme: "dark", shape: "pill" });
-                gapi.load('client:picker', () => {
-                    gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
-                });
+                gapi.load('client:picker', () => gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'));
             },
 
             handleAuth(res) {
-                const payload = JSON.parse(atob(res.credential.split('.')[1]));
-                this.user = payload;
+                this.user = JSON.parse(atob(res.credential.split('.')[1]));
                 document.getElementById('login-screen').style.display = 'none';
                 
-                const client = google.accounts.oauth2.initTokenClient({
+                google.accounts.oauth2.initTokenClient({
                     client_id: window.DRIVE_CONFIG.clientId,
-                    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
+                    scope: 'https://www.googleapis.com/auth/drive.readonly',
                     callback: (t) => { this.token = t.access_token; this.open('files'); }
-                });
-                client.requestAccessToken({ prompt: '' });
+                }).requestAccessToken();
             },
 
             open(type) {
                 const win = document.createElement('div');
                 win.className = 'window';
                 win.id = 'win-' + type;
-                win.style.width = type === 'tv' ? '1000px' : '800px';
-                win.style.height = '600px';
-                win.style.top = '50px'; win.style.left = '100px';
+                win.style.width = type === 'tv' ? '1000px' : '600px';
+                win.style.height = '650px';
+                win.style.top = '40px'; win.style.left = '80px';
                 win.style.zIndex = ++this.z;
 
-                let content = "";
-                if(type === 'files') content = this.getFilesHTML();
-                if(type === 'tv') content = this.getTVHTML();
-                if(type === 'ai') content = `<iframe src="https://www.bing.com/search?q=AI" style="width:100%; height:100%; border:none;"></iframe>`;
+                let content = (type === 'files') ? this.getFilesHTML() : this.getTVHTML();
 
                 win.innerHTML = `
                     <div class="win-bar">
-                        <div class="win-title">${type.toUpperCase()} MODULE</div>
+                        <div class="win-title">${type.toUpperCase()} INTERFACE</div>
                         <div class="win-dot" style="background:#ff5f56;" onclick="this.closest('.window').remove()"></div>
                     </div>
                     <div style="flex-grow:1; background:#000;">
@@ -102,92 +104,85 @@
             getFilesHTML() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
                 <body class="bg-[#0d0d14] text-white p-6 font-sans">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold tracking-tighter">CLOUD EXPLORER</h2>
-                        <button onclick="parent.Kernel.spawnPicker(window)" class="bg-purple-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-500 transition">SCAN DRIVE</button>
+                    <div class="flex flex-col gap-4">
+                        <h2 class="text-xl font-bold">SERIES LINKER</h2>
+                        <input id="show-name" type="text" placeholder="Enter Show Name (e.g. Naruto)" class="bg-white/10 p-3 rounded border border-white/20 text-sm outline-none focus:border-purple-500">
+                        <button onclick="parent.Kernel.pickSeries(window)" class="bg-purple-600 p-3 rounded font-bold text-xs uppercase hover:bg-purple-400">Select Show Folder</button>
                     </div>
-                    <div id="file-list" class="grid grid-cols-1 gap-2">
-                        <p class="text-gray-500 text-sm">No items scanned. Click 'Scan Drive' to start.</p>
-                    </div>
+                    <div id="file-list" class="mt-8 space-y-2"></div>
                 </body></html>`;
             },
 
             getTVHTML() {
                 return `<html><head><script src="https://cdn.tailwindcss.com"></script></head>
                 <body class="bg-black text-white h-screen flex flex-col">
-                    <div id="player-box" class="flex-grow flex items-center justify-center bg-[#050505]">
-                        <iframe id="vid-frame" class="w-full h-full" style="display:none;" allow="autoplay; fullscreen"></iframe>
-                        <div id="empty" class="text-center">
-                            <h1 class="text-4xl font-black text-gray-900 mb-4">ZENITH CINEMA</h1>
-                            <p class="text-gray-600">Waiting for data from Explorer...</p>
-                        </div>
+                    <div class="flex-grow relative bg-black">
+                        <iframe id="player" class="w-full h-full" allow="autoplay; fullscreen"></iframe>
                     </div>
-                    <div id="playlist" class="h-32 bg-[#0d0d14] border-t border-purple-900/30 p-4 flex gap-4 overflow-x-auto"></div>
+                    <div id="playlist" class="h-40 bg-[#0d0d14] border-t border-purple-900/40 p-4 flex gap-4 overflow-x-auto"></div>
                 </body></html>`;
             },
 
-            spawnPicker(childWin) {
+            pickSeries(childWin) {
+                const showName = childWin.document.getElementById('show-name').value || "Unnamed Show";
                 const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS);
-                const picker = new google.picker.PickerBuilder()
+                new google.picker.PickerBuilder()
                     .setAppId(window.DRIVE_CONFIG.appId)
                     .setOAuthToken(this.token)
-                    .setDeveloperKey(window.DRIVE_CONFIG.apiKey)
                     .addView(view)
                     .setCallback(async (data) => {
                         if (data.action == google.picker.Action.PICKED) {
-                            const folderId = data.docs[0].id;
-                            this.scanFolder(folderId, childWin);
+                            this.scanSeries(data.docs[0].id, showName, childWin);
                         }
-                    }).build();
-                picker.setVisible(true);
+                    }).build().setVisible(true);
             },
 
-            async scanFolder(folderId, childWin) {
-                const response = await fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name,mimeType)&key=${window.DRIVE_CONFIG.apiKey}`, {
+            async scanSeries(folderId, showName, childWin) {
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name,mimeType)&key=${window.DRIVE_CONFIG.apiKey}`, {
                     headers: { 'Authorization': 'Bearer ' + this.token }
                 });
-                const data = await response.json();
-                const files = data.files.filter(f => f.mimeType.includes('video') || f.mimeType.includes('folder'));
+                const data = await res.json();
                 
-                const list = childWin.document.getElementById('file-list');
-                list.innerHTML = "";
-                files.sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true})).forEach(file => {
-                    const div = childWin.document.createElement('div');
-                    div.className = "flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 hover:border-purple-500/50 transition cursor-pointer";
-                    div.innerHTML = `<span>${file.name}</span>
-                        <button onclick="parent.Kernel.addToCinema('${file.id}', '${file.name}')" class="bg-blue-600 text-[10px] px-3 py-1 rounded">ADD TO CINEMA</button>`;
-                    list.appendChild(div);
-                });
-            },
+                // Numerical Sorting Logic (Smart Episode Order)
+                const eps = data.files.filter(f => f.mimeType.includes('video'))
+                    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
-            addToCinema(id, name) {
-                this.currentPlaylist.push({id, name});
-                const tvFrame = document.getElementById('frame-tv');
-                if(!tvFrame) {
-                    this.open('tv');
-                    setTimeout(() => this.updateCinemaUI(), 1000);
-                } else {
-                    this.updateCinemaUI();
-                }
+                const list = childWin.document.getElementById('file-list');
+                list.innerHTML = `<h3 class="text-purple-400 text-[10px] font-black mb-2">READY TO MOUNT: ${eps.length} EPISODES</h3>`;
+                
+                eps.forEach((file, i) => {
+                    const row = childWin.document.createElement('div');
+                    row.className = "flex justify-between p-2 bg-white/5 rounded text-xs items-center border border-transparent hover:border-purple-500";
+                    row.innerHTML = `<span>${i+1}. ${file.name}</span> <span class="text-green-500 font-bold">✓</span>`;
+                    list.appendChild(row);
+                });
+
+                // Add to Cinema Master Playlist
+                this.playlist = eps.map(e => ({ id: e.id, name: e.name, show: showName }));
+                this.notify(`Mounted ${showName} - ${eps.length} Episodes`);
+                if(document.getElementById('frame-tv')) this.updateCinemaUI();
             },
 
             updateCinemaUI() {
-                const tvFrame = document.getElementById('frame-tv').contentWindow;
-                const list = tvFrame.document.getElementById('playlist');
+                const tv = document.getElementById('frame-tv').contentWindow;
+                const list = tv.document.getElementById('playlist');
                 list.innerHTML = "";
-                this.currentPlaylist.forEach((item, index) => {
-                    const card = tvFrame.document.createElement('div');
-                    card.className = "min-w-[150px] bg-purple-900/20 border border-purple-500/30 rounded p-2 text-[10px] cursor-pointer hover:bg-purple-500/40";
-                    card.innerHTML = `<b>EP ${index + 1}</b><br>${item.name}`;
+                
+                this.playlist.forEach((ep, i) => {
+                    const card = tv.document.createElement('div');
+                    card.className = "min-w-[160px] bg-white/5 p-3 rounded border border-white/10 hover:bg-purple-600/20 cursor-pointer transition";
+                    card.innerHTML = `<div class="text-[10px] text-purple-400 font-bold mb-1">${ep.show.toUpperCase()}</div>
+                                      <div class="text-xs truncate">${ep.name}</div>
+                                      <div class="text-[9px] mt-2 opacity-50">EPISODE ${i+1}</div>`;
                     card.onclick = () => {
-                        const player = tvFrame.document.getElementById('vid-frame');
-                        tvFrame.document.getElementById('empty').style.display = 'none';
-                        player.src = `https://drive.google.com/file/d/${item.id}/preview`;
-                        player.style.display = "block";
+                        this.currentIndex = i;
+                        tv.document.getElementById('player').src = `https://drive.google.com/file/d/${ep.id}/preview?autoplay=1`;
                     };
                     list.appendChild(card);
                 });
             },
+
+            notify(msg) { console.log("OS:", msg); },
 
             drag(el) {
                 const bar = el.querySelector('.win-bar');
