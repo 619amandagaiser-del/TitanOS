@@ -1,264 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
+html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TitanOS | System</title>
-    
-    <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
-    <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-
-    <style>
-        :root { 
-            --primary: #8a2be2; 
-            --bg: #0d0d14; 
-            --win-bg: rgba(20, 20, 30, 0.95); 
-            --accent: #4285F4;
-        }
-
-        body, html { 
-            margin: 0; padding: 0; height: 100%; overflow: hidden; 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background: var(--bg); color: white; 
-        }
-
-        /* Desktop Layout */
-        #desktop { 
-            width: 100vw; height: 100vh; position: relative; 
-            background: radial-gradient(circle at center, #1a1a2e 0%, #0d0d14 100%);
-        }
-
-        .icon-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, 110px); 
-            gap: 25px; padding: 30px; z-index: 5; position: relative;
-        }
-
-        .icon { 
-            display: flex; flex-direction: column; align-items: center; 
-            cursor: pointer; transition: transform 0.2s; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .icon:hover { transform: scale(1.1); }
-
-        .icon-img { 
-            width: 60px; height: 60px; background: rgba(255,255,255,0.05); 
-            border: 1px solid rgba(138, 43, 226, 0.2); border-radius: 15px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 28px; margin-bottom: 8px; backdrop-filter: blur(5px);
-        }
-
-        /* Window System */
-        .window { 
-            position: absolute; background: var(--win-bg); 
-            border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 12px; 
-            display: none; flex-direction: column; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7); backdrop-filter: blur(20px);
-            min-width: 350px; overflow: hidden; z-index: 10;
-        }
-
-        .win-header { 
-            padding: 12px 15px; background: rgba(255,255,255,0.03); 
-            display: flex; justify-content: space-between; align-items: center; 
-            cursor: move; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .win-title { font-size: 14px; font-weight: 600; color: #bbb; }
-
-        .win-content { flex: 1; overflow-y: auto; position: relative; }
-
-        .close-btn { 
-            background: #ff5f56; border: none; width: 12px; height: 12px; 
-            border-radius: 50%; cursor: pointer; transition: 0.2s;
-        }
-        .close-btn:hover { background: #ff3b30; }
-
-        /* App Specifics */
-        .btn-action {
-            background: var(--primary); color: white; border: none;
-            padding: 12px 20px; border-radius: 8px; cursor: pointer;
-            font-weight: bold; transition: 0.3s;
-        }
-
-        #shows-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-            gap: 20px; padding: 20px;
-        }
-
-        .movie-card {
-            background: #161625; border-radius: 10px; overflow: hidden;
-            transition: 0.3s; border: 1px solid #222; cursor: pointer;
-        }
-        .movie-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-
-        /* Cinema Mode */
-        body.cinema-mode .icon-grid { display: none; }
-        body.cinema-mode .window.active-player { 
-            top: 0 !important; left: 0 !important; 
-            width: 100vw !important; height: 100vh !important; 
-            border: none; z-index: 9999; 
-        }
-        body.cinema-mode .window.active-player .win-header { display: none; }
-
-        iframe { width: 100%; height: 100%; border: none; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Titan OS | Manual Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Titan OS | Manual Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client"></script>
+@@ -13,10 +13,11 @@
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; height: 100vh; }
+        #desktop { position: absolute; inset: 0; background: radial-gradient(circle, #001a1a, #000); z-index: 1; }
+        #dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.1); border: 1px solid var(--cyan); border-radius: 40px; padding: 15px 40px; display: flex; gap: 40px; z-index: 9999; }
+        .window { position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background: #0a0a0f; border: 1px solid var(--cyan); border-radius: 20px; z-index: 1000; display: flex; flex-direction: column; }
+        .window { position: absolute; top: 5%; left: 5%; width: 90%; height: 85%; background: #0a0a0f; border: 1px solid var(--cyan); border-radius: 20px; z-index: 1000; display: flex; flex-direction: column; box-shadow: 0 0 50px #000; }
+        .win-bar { padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .btn-action { background: var(--cyan); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        input { background: #111 !important; border: 1px solid #333 !important; color: white !important; padding: 15px; border-radius: 10px; width: 100%; margin-bottom: 10px; }
+        .btn-action { background: var(--cyan); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 15px; margin-bottom: 15px; }
+        input { background: #111 !important; border: 1px solid #333 !important; color: white !important; padding: 18px; border-radius: 12px; width: 100%; font-size: 16px; margin-bottom: 15px; outline: none; }
+        input:focus { border-color: var(--cyan) !important; }
     </style>
 </head>
-<body id="titan-body">
+<body>
+@@ -42,7 +43,10 @@
+        const win = document.createElement('div');
+        win.id = 'win-'+type; win.className = 'window';
+        win.innerHTML = `
+            <div class="win-bar"><b>${type.toUpperCase()}</b><span onclick="this.closest('.window').remove()" class="text-red-500 text-xl">✕</span></div>
+            <div class="win-bar">
+                <b class="text-cyan-400 tracking-tighter">TITAN // ${type.toUpperCase()}</b>
+                <span onclick="this.closest('.window').remove()" class="text-red-500 font-bold text-2xl">✕</span>
+            </div>
+            <div id="body-${type}" class="p-6 overflow-auto flex-grow"></div>
+        `;
+        document.getElementById('win-layer').appendChild(win);
+@@ -54,11 +58,12 @@
+        if(type === 'explorer') {
+            b.innerHTML = `
+                <button onclick="Titan.auth()" class="btn-action">1. LOGIN TO GOOGLE</button>
+                <div class="mt-4 p-4 border border-zinc-800 rounded-xl">
+                    <p class="text-xs text-cyan-500 mb-2 font-bold">MANUAL FOLDER MOUNT (iPad Fix)</p>
+                    <input id="folder-url" placeholder="Paste Google Drive Folder Link Here...">
+                    <button onclick="Titan.manualMount()" class="w-full bg-zinc-800 py-3 rounded-lg font-bold">MOUNT FOLDER</button>
+                <div class="mt-4 p-6 border border-zinc-800 rounded-2xl bg-zinc-900/50">
+                    <p class="text-[10px] text-cyan-500 mb-3 font-black tracking-widest uppercase">Manual Folder Link (iPad Fix)</p>
+                    <input id="folder-url" placeholder="Paste Google Drive Folder Link here...">
+                    <button onclick="Titan.manualMount()" class="w-full bg-white/10 hover:bg-white/20 py-4 rounded-xl font-bold transition">MOUNT SHOW</button>
+                </div>
+                <p class="text-[10px] text-zinc-500 mt-4 text-center">Tip: Open your folder in Drive, copy the address bar link, and paste it here.</p>
+            `;
+        } else { this.syncCinema(); }
+    },
+@@ -70,43 +75,59 @@
+            callback: (res) => {
+                this.token = res.access_token;
+                localStorage.setItem('t_token', res.access_token);
+                alert("Auth Success!");
+                alert("iPad Securely Linked.");
+            }
+        }).requestAccessToken();
+    },
 
-<div id="desktop">
-    <div class="icon-grid">
-        <div class="icon" onclick="openWin('win-drive')">
-            <div class="icon-img">☁️</div>
-            <span>Drive</span>
-        </div>
-        <div class="icon" onclick="openWin('win-shows')">
-            <div class="icon-img">🎬</div>
-            <span>Shows</span>
-        </div>
-        <div class="icon" onclick="openWin('win-yt')">
-            <div class="icon-img">📺</div>
-            <span>YouTube</span>
-        </div>
-    </div>
+    async manualMount() {
+        const url = document.getElementById('folder-url').value;
+        const match = url.match(/folders\/([^?/]+)/);
+        if(!match || !this.token) return alert("Please Login & use a valid Folder Link!");
+        
+        if(!this.token) return alert("Please click LOGIN first!");
+        if(!match) return alert("Invalid Link! Make sure it's a Google Drive FOLDER link.");
 
-    <div id="win-drive" class="window" style="width: 400px; height: 300px; top: 10%; left: 10%;">
-        <div class="win-header">
-            <span class="win-title">Titan Cloud</span>
-            <button class="close-btn" onclick="closeWin('win-drive')"></button>
-        </div>
-        <div class="win-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" width="50">
-            <h3>Cloud Connection</h3>
-            <button class="btn-action" style="background:#4285F4;" onclick="handleAuthClick()">Connect Google Drive</button>
-            <p id="drive-status" style="font-size:12px; color:#666; margin-top:10px;">Login to access your media</p>
-        </div>
-    </div>
+        const folderId = match[1];
+        const apiCall = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name,mimeType)&key=${this.apiKey}`;
 
-    <div id="win-shows" class="window" style="width: 800px; height: 500px; top: 15%; left: 20%;">
-        <div class="win-header">
-            <span class="win-title">Titan Media Library</span>
-            <button class="close-btn" onclick="closeWin('win-shows')"></button>
-        </div>
-        <div class="win-content">
-            <div id="shows-grid"></div>
-        </div>
-    </div>
+        try {
+            const res = await fetch(apiCall, { headers: { 'Authorization': 'Bearer ' + this.token } });
+            const data = await res.json();
+            this.playlist = data.files.filter(f => f.mimeType.includes('video')).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+            
+            if(data.error) throw new Error(data.error.message);
+            
+            this.playlist = data.files.filter(f => f.mimeType.includes('video'))
+                .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+            
+            localStorage.setItem('t_list', JSON.stringify(this.playlist));
+            alert("Success! Found " + this.playlist.length + " episodes.");
+        } catch (e) { alert("Error mounting: " + e.message); }
+            alert("SUCCESS: Loaded " + this.playlist.length + " Episodes!");
+        } catch (e) { alert("Titan Error: " + e.message); }
+    },
 
-    <div id="win-player" class="window" style="width: 854px; height: 480px; top: 50px; left: 50px;">
-        <div class="win-header">
-            <span class="win-title" id="player-title">Titan Player</span>
-            <button class="close-btn" onclick="exitCinema()"></button>
-        </div>
-        <div class="win-content" style="background:#000;">
-            <iframe id="main-video-frame" src="" allowfullscreen></iframe>
-        </div>
-    </div>
-</div>
-
-<script>
-    // --- TITAN CONFIGURATION ---
-    const CONFIG = {
-        clientId: '106130595767-4u0lkrkppgfv41m4sbc6g2pgjk31gvuc.apps.googleusercontent.com',
-        apiKey: 'AIzaSyBJDwenuskInIOJ-bUtACFAiITJ0jHwWG0',
-        scopes: 'https://www.googleapis.com/auth/drive.readonly'
-    };
-
-    let accessToken = null;
-    let tokenClient;
-    let library = JSON.parse(localStorage.getItem('titan-lib')) || [];
-
-    // --- OS WINDOW ENGINE ---
-    function openWin(id) { 
-        document.getElementById(id).style.display = 'flex'; 
-        if(id === 'win-shows') renderLibrary();
-    }
-    function closeWin(id) { document.getElementById(id).style.display = 'none'; }
-
-    // --- GOOGLE API INITIALIZATION ---
-    function gapiLoaded() { gapi.load('client:picker', () => {}); }
-    function gisLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CONFIG.clientId,
-            scope: CONFIG.scopes,
-            callback: (resp) => { 
-                accessToken = resp.access_token; 
-                document.getElementById('drive-status').innerText = "Authenticated";
-                openPicker(); 
-            },
+    syncCinema() {
+        const b = document.getElementById('body-cinema');
+        if(!b) return;
+        b.innerHTML = `<div class="bg-black aspect-video rounded-xl mb-6 flex items-center justify-center border border-zinc-800"><iframe id="player" class="w-full h-full hidden" allow="autoplay; fullscreen"></iframe><div id="splash" class="text-zinc-900 font-black text-4xl">TITAN</div></div><div id="ep-list" class="space-y-2"></div>`;
+        b.innerHTML = `
+            <div class="bg-black aspect-video rounded-2xl mb-6 flex items-center justify-center border border-zinc-800 overflow-hidden shadow-2xl">
+                <iframe id="player" class="w-full h-full hidden" allow="autoplay; fullscreen"></iframe>
+                <div id="splash" class="text-zinc-800 font-black text-5xl italic tracking-tighter">TITAN</div>
+            </div>
+            <div id="ep-list" class="space-y-3 pb-10"></div>
+        `;
+        const list = b.querySelector('#ep-list');
+        if(this.playlist.length === 0) list.innerHTML = `<div class="text-center text-zinc-600 py-10">No episodes mounted. Use Explorer.</div>`;
+        
+        this.playlist.forEach((ep, i) => {
+            const row = document.createElement('div');
+            row.className = "p-4 bg-zinc-900 rounded-xl border border-zinc-800 active:border-cyan-500";
+            row.innerHTML = `<div class="text-cyan-500 text-[10px] font-bold">EPISODE ${i+1}</div><div class="text-xs truncate">${ep.name}</div>`;
+            row.className = "p-5 bg-zinc-900/80 rounded-2xl border border-zinc-800 active:border-cyan-500 active:bg-cyan-950/20 transition-all";
+            row.innerHTML = `<div class="text-cyan-500 text-[10px] font-black uppercase mb-1">Episode ${i+1}</div><div class="text-sm font-medium truncate">${ep.name}</div>`;
+            row.onclick = () => {
+                document.getElementById('splash').style.display = 'none';
+                const p = document.getElementById('player');
+                p.src = `https://drive.google.com/file/d/${ep.id}/preview`;
+                p.classList.remove('hidden');
+            };
+            b.querySelector('#ep-list').appendChild(row);
+            list.appendChild(row);
         });
     }
-
-    function handleAuthClick() {
-        if (!accessToken) tokenClient.requestAccessToken({prompt: 'consent'});
-        else openPicker();
-    }
-
-    function openPicker() {
-        const view = new google.picker.View(google.picker.ViewId.DOCS);
-        view.setMimeTypes("video/mp4,video/webm,video/x-matroska");
-        const picker = new google.picker.PickerBuilder()
-            .setDeveloperKey(CONFIG.apiKey)
-            .setAppId(CONFIG.clientId)
-            .setOAuthToken(accessToken)
-            .addView(view)
-            .setCallback(pickerCallback)
-            .build();
-        picker.setVisible(true);
-    }
-
-    function pickerCallback(data) {
-        if (data.action == google.picker.Action.PICKED) {
-            const file = data.docs[0];
-            saveToLibrary(file.id, file.name);
-            playMedia(file.id, file.name);
-        }
-    }
-
-    // --- MEDIA PLAYER ---
-    function playMedia(id, name) {
-        const playerWin = document.getElementById('win-player');
-        const frame = document.getElementById('main-video-frame');
-        document.getElementById('player-title').innerText = "Playing: " + name;
-        
-        frame.src = `https://drive.google.com/file/d/${id}/preview`;
-        
-        openWin('win-player');
-        document.body.classList.add('cinema-mode');
-        playerWin.classList.add('active-player');
-    }
-
-    function exitCinema() {
-        document.body.classList.remove('cinema-mode');
-        document.getElementById('win-player').classList.remove('active-player');
-        document.getElementById('main-video-frame').src = "";
-        closeWin('win-player');
-    }
-
-    // --- LIBRARY PERSISTENCE ---
-    function saveToLibrary(id, name) {
-        if (!library.find(x => x.id === id)) {
-            library.push({id, name});
-            localStorage.setItem('titan-lib', JSON.stringify(library));
-            renderLibrary();
-        }
-    }
-
-    function renderLibrary() {
-        const grid = document.getElementById('shows-grid');
-        if(library.length === 0) {
-            grid.innerHTML = `<p style="color:#555; grid-column: 1/-1; text-align:center;">Library empty. Add videos from Drive.</p>`;
-            return;
-        }
-        grid.innerHTML = library.map(item => `
-            <div class="movie-card" onclick="playMedia('${item.id}', '${item.name}')">
-                <div style="height:120px; display:flex; align-items:center; justify-content:center; background:#000; font-size:40px;">🎬</div>
-                <div style="padding:10px; font-size:12px; text-align:center;">${item.name}</div>
-            </div>
-        `).join('');
-    }
-
-    // Initialize
-    window.onload = renderLibrary;
-</script>
-
-</body>
-</html>
+};
+                
